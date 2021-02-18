@@ -1,20 +1,38 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue'
+import Welcome from '../views/Login/Welcome.vue'
+import Admin from '../views/Admin/Admin.vue'
+import ClassManage from '../views/Admin/ClassManage.vue'
+import Courses from '../views/Admin/Courses.vue'
+import Resource from '../views/Admin/Resource.vue'
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
+    name: 'Welcome',
+    component: Welcome
   },
   {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-  }
+    path: '/admin',
+    name: 'Admin',
+    component: Admin,
+    children:[
+      {
+        path: '',
+        name: 'ClassManage',
+        component: ClassManage
+      },
+      {
+        path: 'courses',
+        name: 'Courses',
+        component: Courses
+      },
+      {
+        path: 'resource',
+        name: 'Resource',
+        component: Resource
+      }
+    ]
+  },
 ]
 
 const router = createRouter({
@@ -23,3 +41,8 @@ const router = createRouter({
 })
 
 export default router
+
+
+// component: () => import(/* webpackChunkName: "classManage" */ './views/Resource') thay thế cho import thông thường
+// nó là 1 tính năng của webpack cho phép bao h đi tới router đó thì mưới laod chunk(hoặc phần bundle) mà các router đó cần (ở đây là 1 file js đc nén bằng webpack)
+// tốc độ đc cải thiẹn
