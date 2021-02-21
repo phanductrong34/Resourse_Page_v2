@@ -18,6 +18,9 @@
                                 <label class="active"  for="login-password">Password</label>
                             </div>
                         </div>
+                        <div class="row" v-if="error">
+                            <div class="center error-message">{{error}}</div>
+                        </div>
                         <div class="row center">
                             <h6 class="no-account">No account yet? <a href="https://www.facebook.com/profile.php?id=100007780805626" target="_blank">Contact me</a> to join a class</h6>
                         </div>
@@ -35,8 +38,9 @@
 
 <script>
     import lottie from 'lottie-web'
-    import {onMounted} from 'vue'
+    import {ref,onMounted} from 'vue'
     import {useRouter} from 'vue-router'
+    import useLogin from '@/composable/useLogin'
     export default {
         setup() {
             onMounted(()=>{
@@ -60,11 +64,21 @@
 
             })
             
+            const email = ref("");
+            const password = ref("");
+
             const router = useRouter();
-            const handleSubmit = () => {
-                router.push({name: 'Admin'});
+            const {login, error} = useLogin();
+            const handleSubmit = async () => {
+                const res = await login(email.value,password.value);
+
+                //login thành công và ko ném ra bất cứ lỗi nào
+                if(!error.value){
+                    router.push({name: 'Admin'});
+                }
+
             }
-            return {handleSubmit}
+            return {handleSubmit,email,password,error}
         }
         
     }

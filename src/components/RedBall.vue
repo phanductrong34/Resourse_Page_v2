@@ -8,6 +8,7 @@
     <div class="red-ball">
         <span :class="['ball1', modeComputed]"></span>
         <span :class="['ball2', modeComputed]"></span>
+        <span :class="['ball3', modeComputed]"></span>
     </div>
 </template>
 
@@ -78,10 +79,31 @@ export default {
     height: 30rem;
 }
 .ball2.mode3 {
-    bottom: -500px;
+    bottom: -174px;
     right: 100px;
+    width: 20rem;
+    height: 20rem;
+}
+.ball3.mode3 {
+    bottom: -70%;
+    left: 5%;
+    width: 60%;
+    height: 120%;
+    transform: translate(-50%,-50%);
+}
+
+//MODE 4
+.ball1.mode4 {
+    top: -280px;
+    right: -180px;
     width: 50rem;
     height: 50rem;
+}
+.ball2.mode4 {
+    bottom: -121px;
+    right: 386px;
+    width: 15rem;
+    height: 15rem;
 }
 
 </style>

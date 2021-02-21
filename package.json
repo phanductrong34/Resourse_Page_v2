@@ -11,6 +11,7 @@
     "core-js": "^3.6.5",
     "firebase": "^8.2.7",
     "lottie-web": "^5.7.6",
+    "materialize-css": "^1.0.0-rc.2",
     "vue": "^3.0.0-0",
     "vue-router": "^4.0.0-0",
     "vue-slick-carousel": "^1.0.6",

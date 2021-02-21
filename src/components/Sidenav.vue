@@ -12,12 +12,13 @@
                     <li @click="changeBallMode(1)"><router-link :to="{name: 'ClassManage'}">Class Manage</router-link></li>
                     <li @click="changeBallMode(2)"><router-link :to="{name: 'Courses'}">Courses</router-link></li>
                     <li @click="changeBallMode(3)"><router-link :to="{name: 'Resource'}">Resource</router-link></li>
+                    <li @click="changeBallMode(4)"><router-link :to="{name: 'Teachers'}">Teacher</router-link></li>
                 </ul>
                 <div class="signout-container">
                     <div class="lottie" data-file="laptop"></div>
         
                     <h6>Back to login page</h6>
-                    <a class="btn red darken-4 waves-effect waves-light" href="#">
+                    <a class="btn red darken-4 waves-effect waves-light" href="#" @click="signIn">
                         <i class="material-icons left">power_settings_new</i>
                         Sign Out
                     </a> 
@@ -38,6 +39,8 @@
 import RedBall from '@/components/RedBall'
 import lottie from 'lottie-web'
 import {onMounted, ref} from 'vue'
+//development 
+import useLogin from '@/composable/useLogin'
  
 export default {
     components: {
@@ -58,12 +61,22 @@ export default {
                 renderer: 'svg',
                 loop: true,
                 autoplay: true,
-                path: './assets/anim/bunny-laptop.json' // the path to the animation json
+                path: '../../assets/anim/bunny-laptop.json' // the path to the animation json
             });
 
         })
 
-        return {redBallMode,changeBallMode}
+
+        //development purpose
+        const {error, login} = useLogin()
+        const signIn = async()=>{
+            const user = await login("phanductrong.glb@gmail.com",'123456789')
+            if(!error.value){
+                console.log("login succedddd at nav")
+            }
+        }
+
+        return {redBallMode,changeBallMode,signIn}
     }
 }
 </script>
@@ -141,7 +154,7 @@ export default {
         }
     }
 }
-.router li a.router-link-exact-active{
+.router li a.router-link-active{
     color: $color-primary;
     position: relative;
     font-size: 1.5rem;

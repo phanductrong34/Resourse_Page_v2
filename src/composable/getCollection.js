@@ -1,14 +1,14 @@
 import {projectFirestore} from "@/firebase/config"
 import { ref } from 'vue'
 
-const getCollection = () => {
+const getCollection = (collection) => {
     const dataArray = ref([]);
     const error = ref("");
 
-    const load = async(collection,orderby,order) => {
+    const load = async() => {
         try {
             const res = await projectFirestore.collection(collection)
-            .orderBy(orderby,order).get();
+            .orderBy('createdAt','desc').get();
             dataArray.value = res.docs.map(doc => {
                 return {...doc.data(), id: doc.id}
             })       

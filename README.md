@@ -55,5 +55,3 @@ https://css-tricks.com/how-to-import-a-sass-file-into-every-vue-component-in-an-
 tạo folder chứa toàn bộ file scss, co thể import hết vào 1 cái main.scss
 viết config mới để nó nhận file scss tổng ấy , sau đó vào các component vue sử dụng variable sass ầm ầm thôi
 
-
----------------------      VUE ROUTER  ADVANCE     -------------------------------

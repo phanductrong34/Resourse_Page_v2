@@ -1,11 +1,11 @@
 import {projectFirestore} from "@/firebase/config"
 import { ref } from 'vue'
 
-const getDoc = () => {
+const getDoc = (collection) => {
     const data = ref({});
     const error = ref("");
 
-    const load = async(collection,id) => {
+    const load = async(id) => {
         try {
             const res = await projectFirestore.collection(collection).doc(id).get();
             data.value = {...res.data(),id: res.id}

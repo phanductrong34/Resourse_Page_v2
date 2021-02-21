@@ -1,0 +1,93 @@
+<template>
+    <div class="teachers-list">
+        <ul class="collapsible">
+            <li v-for="ad in admins" :key="ad.id">
+                <div :class="[{'red-border' : ad.role == 'Teacher'},'collapsible-header teacher-header']">
+                    <div class="teacher-ava"></div>
+                    <div class="teacher-title">
+                        <h5 class="teacher-name">{{ad.name}}</h5>
+                        <p class="teacher-role">{{ad.role}}</p>
+                    </div>
+                    <div class="teacher-button" @click="$emit('update',ad.id)">
+                        <i class="material-icons">edit</i>
+                    </div>
+                </div>
+                <div class="collapsible-body">
+                    <div class="teacher-body">
+                        <div class="teacher-content">
+                            <div class="teacher-email">Email: {{ad.email}}</div>
+                            <div class="teacher-phone">Phone Number: {{ad.phone}}</div>
+                            <div class="teacher-password">Password: {{ad.password}}</div>
+                        </div>
+                        <div class="teacher-remove">
+                            <button class="waves-effect waves-light btn red darken-4"
+                                    @click="$emit('remove',{password:ad.password,id:ad.id})"><i class="material-icons left">delete_forever</i>Remove {{ad.role}}</button>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</template>
+
+<script>
+    import {onMounted} from 'vue'
+    export default {
+        props: ['admins'],
+        setup(props) {
+            onMounted(() => {
+                $(document).ready(function(){
+                    $('.collapsible').collapsible();
+                });
+            });
+        }
+    }
+</script>
+
+<style lang="scss" scoped>
+   //TEACHER LIST
+    .teachers-list{
+        width: 90%;
+    }
+    .teacher-header{
+        display: flex;
+        position: relative;
+        border-left: 4px solid $color-orange;
+        &.red-border{
+            border-left: 4px solid $color-primary;
+        }
+    }
+    .teacher-ava{
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: $color-gray-dark;
+        margin-right: 15px;
+    }
+    .teacher-role{
+        color: $color-gray-dark;
+    }
+    .teacher-button{
+        position: absolute;
+        right: 0%;
+        top: 50%;
+        transform: translate(-50%,-50%);
+        transition: all 0.2s;
+        color: black;
+        &:hover{
+            transform: translate(-50%,-50%) scale(1.2);
+            color: $color-primary;
+        }
+    }
+
+    .teacher-body{
+        display: flex;
+        justify-content: space-between;
+
+    }
+    .teacher-remove button{
+        border-radius: 20px;
+        text-transform: lowercase;
+        font-family: "Averta Semi Bold";
+    }
+</style>

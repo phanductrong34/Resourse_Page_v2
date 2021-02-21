@@ -44,7 +44,7 @@ export default {
             return props.classi.timeOccur[0].date + "-" + props.classi.timeOccur[1].date;
         })
         const classiPhoto = computed(()=>{
-            return `./assets/png/card-${props.type}.png`
+            return `../assets/png/card-${props.type}.png`
         })
 
         return {classiName,classiDate,classiTime,classiPhoto}

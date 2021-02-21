@@ -157,8 +157,8 @@ export default {
                                 
                         }
                         //POST to database
-                        const {error : setError,set} = setDoc();
-                        set("classes",classID.value,newClass);
+                        const {error : setError,set} = setDoc("classes");
+                        set(classID.value,newClass);
 
                         //Catch error from database
                         if(setError.value){

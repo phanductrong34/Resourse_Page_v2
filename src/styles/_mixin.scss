@@ -9,4 +9,7 @@
 @mixin card-shadow-2{
     box-shadow: 1.5rem 1.5rem 2rem 0 rgba($color-black, 0.06)
 }
+@mixin card-shadow-3{
+    box-shadow: 0 1.75rem 3.125rem rgba($color-black, 0.08)
+}
 

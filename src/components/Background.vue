@@ -1,7 +1,7 @@
 <template>
   <teleport to="#back">
     <div class="background">
-        <img src="@/assets/png/admin.png" alt="">
+        <img src="@/assets/png/resource-page.png" alt="">
     </div>
   </teleport>
 </template>

@@ -1,22 +1,22 @@
 import {projectFirestore} from "@/firebase/config"
 import { ref } from 'vue'
 
-const setDoc = (collection) => {
+const removeDoc = (collection) => {
     const error = ref(null);
 
-    const set = async(id,data) => {
+    const remove = async(id) => {
         try {
             // dùng set thì ta sẽ quyết định được id
-            const res = await projectFirestore.collection(collection).doc(id).set(data);
+            const res = await projectFirestore.collection(collection).doc(id).delete();
             error.value = null;
         } catch (err) {
             error.value = err.message;
-            console.log('Add error log: '+ err.value);   
+            console.log('Update error log: '+ err.message);   
         }
     }
 
 
-    return {error, set}
+    return {error, remove}
 }
 
-export default setDoc
+export default removeDoc

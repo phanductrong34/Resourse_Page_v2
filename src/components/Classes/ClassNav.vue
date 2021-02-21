@@ -53,8 +53,8 @@ Khi click vào tab thì đổi biến activeCourse ở ngoài bố
 
 
             //Load all tab of courses
-            const {dataArray : courses , error, load} = getCollection();
-            load("courses","type","asc");
+            const {dataArray : courses , error, load} = getCollection("courses");
+            load();
             
             return{courses , error,
                    showModalCreate,toggleModal}

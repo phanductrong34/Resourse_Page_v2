@@ -33,5 +33,9 @@ body{
   overflow: hidden;
 
 }
+
+.error-message{
+  color: $color-primary;
+}
 </style>
   

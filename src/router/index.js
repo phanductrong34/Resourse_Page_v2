@@ -4,6 +4,10 @@ import Admin from '../views/Admin/Admin.vue'
 import ClassManage from '../views/Admin/ClassManage.vue'
 import Courses from '../views/Admin/Courses.vue'
 import Resource from '../views/Admin/Resource.vue'
+import Teachers from '../views/Admin/Teachers.vue'
+
+import CreateFile from '../views/Admin/ResourceCollection/CreateFile.vue'
+import Folders from '../views/Admin/ResourceCollection/Folders.vue'
 
 const routes = [
   {
@@ -17,7 +21,7 @@ const routes = [
     component: Admin,
     children:[
       {
-        path: '',
+        path: 'classes',
         name: 'ClassManage',
         component: ClassManage
       },
@@ -29,10 +33,41 @@ const routes = [
       {
         path: 'resource',
         name: 'Resource',
-        component: Resource
+        component: Resource,
+        children:[
+          {
+            path: 'folders/:name',
+            name: 'Folders',
+            component: Folders
+          },
+          {
+            path: 'createfile',
+            name: 'CreateFile',
+            component: CreateFile
+          }
+        ]
+      },
+      {
+        path: 'teachers',
+        name: 'Teachers',
+        component: Teachers,
+        children:[
+          {
+            path:'create',
+            name: 'CreateTeacher',
+            component: () => import('../views/Admin/TeachersForm/CreateTeacher.vue')
+          },
+          {
+            path:'update/:id',
+            name: 'UpdateTeacher',
+            component: () => import('../views/Admin/TeachersForm/UpdateTeacher.vue'),
+            props: true
+          }
+        ]
       }
     ]
   },
+
 ]
 
 const router = createRouter({
