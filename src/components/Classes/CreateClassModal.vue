@@ -146,6 +146,7 @@ export default {
                     if(!valid.value.includes(false)){
                         const newClass = {
                             courseID : courseID.value,
+                            unlockLessons: [],
                             classID : classID.value,
                             createdAt : timestamp(),
                             latestUnlock: 0,

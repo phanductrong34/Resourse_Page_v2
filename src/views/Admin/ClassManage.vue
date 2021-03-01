@@ -14,9 +14,7 @@
 
         </div>
         <div class="right-section">
-            <div>1- {{filterClasses}}</div>
-            <div>2- {{activeClassID}}</div>
-            <div>3- {{activeCourseID}}</div>
+
         </div>
     </div>
 
@@ -95,11 +93,12 @@ export default {
 //////// LEFT_SECTION
 .left-section{
     width: 68%;
+    max-width: 820px;
     display: flex;
     flex-direction: column;
     height: 100%;
     & > *{
-        margin-bottom: 0.4rem;
+        margin-bottom: 0rem;
     }
 }
 .classes-section{

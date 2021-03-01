@@ -2,10 +2,9 @@
     <div class="student-section">
         <StudentNav :activeClassID="activeClassID" :studentCount="studentCount" :submitCount="submitCount"
                     @updateCount="updateCount"/>
-        <StudentList :students="students" 
+        <Loading v-if="isLoading" />
+        <StudentList v-else :students="students" 
                      @updateCount="updateCount"/>
-        <div>
-        </div>
     </div>
 </template>
 
@@ -21,13 +20,21 @@
             StudentNav,StudentList
         },
         setup(props) {
+            const isLoading = ref(false);
             const studentCount = ref(0);
             const {dataArray :students, error, load} = getCollectionFilter()
             
             //ban đầu khi render component này thì props.activeClass đang là null => vì nó cập nhật nên ra load lại
-            onUpdated(async()=>{
+            watchEffect(async()=>{
+                //reset các trường
+                const trigger = studentCount.value;
+                isLoading.value = true;
+                students.value = [];
+
                  await load("students","classID",props.activeClassID);
                  studentCount.value = students.value.length;
+                
+                isLoading.value = false;
             })
 
             //reload from createStudnentModal signal
@@ -36,7 +43,7 @@
             }
             //fetch submitCount
             const submitCount = ref(0);
-            return {studentCount,students, submitCount,updateCount};
+            return {studentCount,students, submitCount,updateCount, isLoading};
         }
     }
 </script>

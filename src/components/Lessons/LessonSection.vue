@@ -2,7 +2,7 @@
     <div>
         <LessonNav :lessonCount="lessonCount" :unlockCount="unlockCount"/>
         <Loading v-if="isLoading"/>
-        <LessonList v-else :lessons="lessons" :unlockLessons="unlockLessons"/>
+        <LessonList v-else :lessons="lessons" :unlockLessons="unlockLessons" @toggleLesson="toggleLesson"/>
         <NoData :data="'lessons'" v-if="noData"/>
     </div>
 </template>
@@ -12,6 +12,7 @@
     import LessonList from '@/components/Lessons/LessonList.vue'
     import getCollectionFilter from '@/composable/getCollectionFilter'
     import getDoc from '@/composable/getDoc'
+    import updateDoc from '@/composable/updateDoc'
     import {computed, ref,watchEffect} from 'vue'
 
     export default {
@@ -46,6 +47,7 @@
                     }
                 }
             });
+            ///////////////////// computed số ít sô nhiều
 
             const lessonCount = computed(()=>{
                 return lessons.value.length;
@@ -54,8 +56,25 @@
                 return unlockLessons.value.length;
             })
 
+            /////////////////// event unlock - hàm này ko hề đánh động watchEffect, thay dổi dồng thời cả off lẫn on nên ko phải laod lại
+            const {error: errUpdate, update : updateClass} = updateDoc("classes")
+            const toggleLesson = async(number) => {
+                const index = unlockLessons.value.indexOf(Number(number));
+                if(index > -1){   // nếu mà có trong unlock => xóa đi
+                    unlockLessons.value.splice(index,1)
+                    await updateClass(props.activeClassID,{
+                        unlockLessons : unlockLessons.value
+                    })
+                }else{
+                    unlockLessons.value.push(Number(number))
+                    await updateClass(props.activeClassID,{
+                        unlockLessons : unlockLessons.value
+                    })
+                }
+            }
+
             return{lessons,unlockLessons,noData,isLoading,
-                    lessonCount,unlockCount}
+                    lessonCount,unlockCount,toggleLesson}
         }
     }
 </script>

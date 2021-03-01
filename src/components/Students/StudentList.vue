@@ -1,7 +1,9 @@
 <template>
-    <div class="student-list" v-if="students.length">
+    <div class="student-list">
         <div class="student-card" v-for="student in students" :key="student.id">
-            <div class="student-ava"></div>
+            <div class="student-ava">
+                <div class="ava-container"><Image class="ava" :refUrl="student.avaRef"/></div>
+            </div>
             <div class="student-edit" @click="toggleModal(student.id)">
                 <i class="material-icons">edit</i>
             </div>
@@ -15,9 +17,6 @@
         <UpdateStudentModal :studentID="studentID"
                             :showModal="showModalCreate" @closeModal="toggleModal(null)" 
                             @updateCount="$emit('updateCount',$event)"/>
-    </div>
-    <div v-else>
-        <Loading/>
     </div>
 </template>
 
@@ -85,19 +84,15 @@
         &:hover{
             cursor: pointer;
             transform: scale(1.05);
+            & .ava{
+                filter: brightness(80%);
+            }
+            & .student-edit{
+                opacity: 1;
+            }
         }
     }
 
-    &-ava{
-        position: absolute;
-        width: 4rem;
-        height: 4rem;
-        border-radius: 50%;
-        top: 10%;
-        left: 10%;
-        transform: translate(-50%,-50%);
-        background-color: $color-orange;
-    }
     &-nickname{
         font-family: "Averta Black";
         font-size: 1.2rem;
@@ -118,16 +113,46 @@
         width: 2.5rem;
         height: 2.5rem;
         border-radius: 50%;
-        background-color: $color-gray-light-2;
-        color: $color-gray-dark;
+        color: white;
         position: absolute;
-        top: -15%;
+        top: -13%;
         left: -4%;
+        opacity: 0;
         @include transition;
 
         &:hover{
-            color: $color-primary;
+            transform: scale(1.5);
         }
     }
+
+//////////////////// AVATA
+    &-ava{
+        position: absolute;
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        top: 10%;
+        left: 10%;
+        transform: translate(-50%,-50%);
+        background-color: $color-primary;
+        @include transition;
+    }
+}
+.ava-container{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 5rem;
+    border-radius: 10rem;
+    display:flex;
+    justify-content: center;
+    overflow: hidden;
+    
+}
+.ava{
+    width: 100%;
+    transform: translateY(1rem) scale(0.9);
+
 }
 </style>

@@ -64,7 +64,7 @@
 
 <script>
 import { ref} from "vue"
-import {timestamp} from '@/firebase/config'
+import {timestamp,projectStorage} from '@/firebase/config'
 import useCollection from '@/composable/useCollection'
 
 export default {
@@ -82,6 +82,8 @@ export default {
         const nicknameTag = ref(null)
         const newStudents = ref([])
 
+        //get ava list 
+        projectStorage.ref().child('')
 
         // hàm reset toàn bộ field
         const resetField = ()=>{
@@ -134,6 +136,7 @@ export default {
                         fullname: "",
                         works: [],
                         phone: "",
+                        avaRef:`ava/ava-(${Math.ceil(Math.random()*50)}).svg`,
                         createdAt: timestamp()
                     };
             });
