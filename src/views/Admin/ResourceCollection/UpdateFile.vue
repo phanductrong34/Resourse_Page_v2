@@ -5,7 +5,7 @@
                 <i class="material-icons">clear</i>
             </span>
             <div class="row">
-                <h3 class="center">Create File</h3>
+                <h3 class="center">Update File</h3>
             </div>
             <div class="row">
                 <div class="input-field col s12">
@@ -45,15 +45,24 @@
                     <label class="active"  for="res-folder">Folder</label>
                 </div>
             </div>
-            <div class="row" v-if="errCreate">
-                <div class="center error-message">{{errCreate}}</div>
+            <div class="row" v-if="errGet">
+                <div class="center error-message">{{errGet}}</div>
+            </div>
+            <div class="row" v-if="errUpdate">
+                <div class="center error-message">{{errUpdate}}</div>
+            </div>
+            <div class="row" v-if="errRemove">
+                <div class="center error-message">{{errRemove}}</div>
             </div>
             <div class="row">
-                <div class="col s6">
+                <div class="col s4">
+                    <button class="button-file waves-effect waves-light btn grey lighten-1" @click.prevent="deleteFile"><i class="material-icons left">delete</i>Delete File</button>
+                </div>
+                <div class="col s4">
                     <button class="button-file waves-effect waves-light btn grey lighten-1" @click.prevent="clearField"><i class="material-icons left">cancel</i>Clear</button>
                 </div>
-                <div class="col s6">
-                    <button class="button-file waves-effect waves-light btn red darken-4"><i class="material-icons left">add</i>Create file</button>
+                <div class="col s4">
+                    <button class="button-file waves-effect waves-light btn red darken-4"><i class="material-icons left">add</i>Update file</button>
                 </div>
             </div>
         </form>
@@ -63,11 +72,13 @@
 <script>
     import {ref,onMounted} from 'vue'
     import {timestamp, projectAuth} from '@/firebase/config'
-    import useCollection from '@/composable/useCollection'
+    import getDoc from '@/composable/getDoc'
+    import updateDoc from '@/composable/updateDoc'
+    import removeDoc from '@/composable/removeDoc'
     import {useRouter} from 'vue-router'
     export default {
         components: {},
-        props: ['folder'],
+        props: ['id'],
         setup(props) {
             //SET UP FOR DROPDOWN INPUT
             onMounted(() => {
@@ -75,16 +86,37 @@
                     $('select').formSelect();
                 });
             })
+            //getAdmin password for further check
+            const password = ref("")
+            const {data : admin, error : errAdmin, load: loadAdmin} = getDoc("admins");
+            if(!errAdmin.value && projectAuth.currentUser){
+                loadAdmin(projectAuth.currentUser.uid)
+                .then(()=>{
+                    password.value = admin.value.password;
+                })
+            }
 
-            const {error : errCreate, addDoc} = useCollection("files")
+
+            const {data : doc, error : errGet, load} = getDoc("files")
+            const {error : errRemove, remove} = removeDoc("files");
+            const {error : errUpdate, update} = updateDoc("files")
             const router = useRouter();
 
             //refs
             const name = ref("");
             const from = ref("");
             const type = ref("");
-            const folder = ref(props.folder);
+            const folder = ref("");
             const link = ref("")
+
+            //fetch lấy data cho vào các field
+            load(props.id).then(()=>{
+                name.value = doc.value.name;
+                from.value = doc.value.from;
+                type.value = doc.value.type;
+                folder.value = doc.value.folder;
+                link.value = doc.value.link;
+            })
 
             const clearField = ()=>{
                 name.value = "";
@@ -98,8 +130,23 @@
                 router.back();
             }
 
-            // Handle submit
+            
+            //delete file khỏi collection (check password admin thì mới được xóa)
+            const deleteFile = async() => {
+                console.log("user pass",projectAuth.currentUser.password)
+                const check = prompt("Type your admin password to delete");
+                if(check != null && check == password.value){
+                    await remove(props.id);
+                    if(!errRemove.value){
+                        alert("Delete File succeed!")
+                        router.back();
+                    }
+                }else{
+                    alert ("Password Incorrect. Failed to delete File")
+                }
+            }
 
+            // Handle submit để update
             const handleSubmit = async() => {
                 const file = {
                     name: name.value,
@@ -109,14 +156,15 @@
                     folder : folder.value,
                     createdAt : timestamp(),
                 }
-                await addDoc(file);
-                if(!errCreate.value){
-                    alert(`Create new file to ${file.folder} succeed!`);
-                    router.push({name : "Folders", params: {name : file.folder}});
+                await update(props.id,file);
+                if(!errUpdate.value){
+                    alert(`Update File succeed!`);
+                    router.back();
                 }
             }
-            return {name, from,type,folder,link,
-                    clearField,handleSubmit,errCreate,closeModal}
+            return {name, from,type,folder,link,doc, 
+                    clearField,handleSubmit,closeModal,deleteFile,
+                    errUpdate,errGet,errRemove}
         }
     }
 </script>

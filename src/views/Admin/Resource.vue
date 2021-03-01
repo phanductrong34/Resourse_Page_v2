@@ -13,7 +13,7 @@
         </div>
         <div class="file-container">
             <router-view/>
-            <div class="lottie-treasure"></div>
+            <!-- <div v-if="folders" class="lottie-treasure"></div> -->
         </div>
     </div>
 </template>
@@ -21,7 +21,8 @@
 <script>
 import Loading from '@/components/Loading.vue'
 import getCollectionRT from '@/composable/getCollectionRT'
-import {ref, onMounted} from 'vue'
+import {ref, onMounted,watch} from 'vue'
+import {useRouter} from 'vue-router'
 import lottie from 'lottie-web'
 
 export default {
@@ -31,18 +32,28 @@ export default {
     setup() {
 
     //SETUP lottieJs cho treasure
-        onMounted(()=>{
-            lottie.loadAnimation({
-                container: document.querySelector(".lottie-treasure"), // the dom element that will contain the animation
-                renderer: 'svg',
-                loop: true,
-                autoplay: true,
-                path: '../../assets/anim/resource-treasure.json' // the path to the animation json
-            });
+        // onMounted(()=>{
+        //     lottie.loadAnimation({
+        //         container: document.querySelector(".lottie-treasure"), // the dom element that will contain the animation
+        //         renderer: 'svg',
+        //         loop: true,
+        //         autoplay: true,
+        //         path: '../../assets/anim/resource-treasure.json' // the path to the animation json
+        //     });
 
-        })
+        // })
         const {documents: folders,error: errFolders} = getCollectionRT("folders");
 
+        // ngay khi có folder, đẩy nó liền vào thằng đầu tiên 
+        // const router = useRouter();
+
+        const router = useRouter();
+        watch(folders, ()=>{
+            if(folders.value != null){
+                const firstFolder = ((folders.value)[0]).name;
+                router.push({name: 'Folders', params: {name: firstFolder}})
+            }
+        })
         return {folders,errFolders}
     }
 }
@@ -110,13 +121,13 @@ export default {
         transform: translateX(5rem);
 
     }
-    .lottie-treasure{
-        width: 40rem;
-        position: absolute;
-        top: 50%;
-        right: 0%;
-        transform: translate(-50%,-50%);
-        z-index: -1;
-    }
+    // .lottie-treasure{
+    //     width: 40rem;
+    //     position: absolute;
+    //     top: 50%;
+    //     right: 0%;
+    //     transform: translate(-50%,-50%);
+    //     z-index: -1;
+    // }
 
 </style>

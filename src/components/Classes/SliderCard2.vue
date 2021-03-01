@@ -1,6 +1,6 @@
 <template>
     <div class="slider-card">
-        <div class="button-wrapper" v-if="classes.length">
+        <div class="button-wrapper" v-if="classes">
                 <!-- PREV BUTTON -->
                 <a
                     href="#"
@@ -22,7 +22,7 @@
         <div class="container-wrapper" :style="containerWrapper">
             <div class="container-overflow" :style="containerOverflow">
                 <div 
-                    v-if="classes.length" 
+                    v-if="classes" 
                     v-for="(classi,index) in filterClasses" :key="classi.id"
                     :style="card" :id="classi.id" 
                     @click="$emit('activateClass',index)"
@@ -48,15 +48,15 @@
 </template>
 
 <script>
-    import {computed, ref, watchEffect} from 'vue'
-    import getRealtimeCollection from '@/composable/getRealtimeCollection'
-    import CardClass2 from '@/components/Card/CardClass2'
+    import {computed, ref, watch, watchEffect} from 'vue'
+    import getCollectionRT from '@/composable/getCollectionRT'
+    import CardClass2 from '@/components/Classes/CardClass2'
     import {projectFirestore} from '@/firebase/config'
     export default {
         components:{
             CardClass2
         },
-        props: ['cardWidth','cardHeight', 'cardSpace', 'cardCount','activeCourse', 'activeClass'],
+        props: ['cardWidth','cardHeight', 'cardSpace', 'cardCount','activeCourse', 'activeClass','activeClassID'],
         setup(props) {
     //STYLING DOM (ta chỉ quy định chiều dài + rộng + giãn cách của card thôi)
 
@@ -102,24 +102,16 @@
 
     // DATA
 
-                //Load list tất cả các class tồn tại
-                // load("classes","dateCreated","desc");
+                //Load list tất cả các class tồn tại nhưng mà đc gán với onSnapshot ==> phải watch sự thay đổi của nó
 
-                const classes = ref([]);
+                const {documents : classes,error} = getCollectionRT("classes");
+                watchEffect(()=>{
+                    if(classes.value != null){
+                        maxPage.value = parseInt((classes.value.length) / props.cardCount);
+                    }
+                })
 
-                projectFirestore.collection("classes")
-                    .orderBy("dateCreated","desc")
-                    .onSnapshot((snap) => {
-                        let docs = snap.docs.map(doc => {
-                            return {...doc.data(), id: doc.id};
-                        })
-                        console.log("load collection",docs)
-                        classes.value = docs;
-                        // cập nhật max page
-                        maxPage.value = parseInt((docs.length) / props.cardCount);
 
-                    })
-                //classes là 1 ref() được tạo ở bên getCollection.js, nên phải có .value
                 //activeCourse đang chọn là animation => lọc ra class có type animation
                 const filterClasses = computed(()=>{
                     return classes.value.filter((classi) => {
@@ -129,8 +121,7 @@
                     })
 
                 })
-
-
+            
             
             //FUNCTION DICH CHUYỂN SLIDER: DỊCH containerOverflow
             // Click vào card thì update lại activeClass ==> ta watch cái biến này để dịch chuyển container, thay vì chạy event thay đổi trực tiếp transform luôn

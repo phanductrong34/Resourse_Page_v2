@@ -18,7 +18,7 @@
                     <div class="lottie" data-file="laptop"></div>
         
                     <h6>Back to login page</h6>
-                    <a class="btn red darken-4 waves-effect waves-light" href="#" @click="signIn">
+                    <a class="btn red darken-4 waves-effect waves-light" href="#" @click="logingOut">
                         <i class="material-icons left">power_settings_new</i>
                         Sign Out
                     </a> 
@@ -38,9 +38,12 @@
 <script>
 import RedBall from '@/components/RedBall'
 import lottie from 'lottie-web'
-import {onMounted, ref} from 'vue'
-//development 
-import useLogin from '@/composable/useLogin'
+import {onMounted, ref, watch, watchEffect} from 'vue'
+import {projectAuth} from '@/firebase/config'
+import getUser from '@/composable/getUser'
+import useLogout from '@/composable/useLogout'
+import {useRouter} from 'vue-router'
+
  
 export default {
     components: {
@@ -61,22 +64,33 @@ export default {
                 renderer: 'svg',
                 loop: true,
                 autoplay: true,
-                path: '../../assets/anim/bunny-laptop.json' // the path to the animation json
+                path: '/assets/anim/bunny-laptop.json' // the path to the animation json
             });
 
         })
 
+        // logout and listen to change to push to login
 
-        //development purpose
-        const {error, login} = useLogin()
-        const signIn = async()=>{
-            const user = await login("phanductrong.glb@gmail.com",'123456789')
+        const {logout, error} = useLogout()
+        const {user} = getUser();
+        const router = useRouter();
+        const logingOut = async()=>{
+           await logout();
             if(!error.value){
-                console.log("login succedddd at nav")
+                console.log("logout succeed")
             }
         }
 
-        return {redBallMode,changeBallMode,signIn}
+        // watchEffect(()=> {
+        //     console.log("nav has run")
+        //     if(!user.value){
+        //         router.push({name: 'Welcome'});
+        //     }
+        // })
+
+
+
+        return {redBallMode,changeBallMode,logingOut}
     }
 }
 </script>

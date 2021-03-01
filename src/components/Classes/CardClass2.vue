@@ -13,8 +13,7 @@
                 </li>
             </ul>
             <span class="cards-content-icon">
-                {{classi.studentCount}}
-                <i class="material-icons">person</i>
+                {{ classi.courseID }}
             </span>
         </div>
         <img class="cards-background" :src="classiPhoto"/>
@@ -37,7 +36,7 @@ export default {
 
         })
         const classiDate = computed(()=>{
-            let date = props.classi.dateCreated.toDate();
+            let date = props.classi.createdAt.toDate();
             return date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear();
         })
         const classiTime = computed(()=>{

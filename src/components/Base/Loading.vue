@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="loading">
         <div class="content">
         <div class="column">
             <div class="container animation-2">
@@ -44,7 +44,13 @@ $shapeDimentions: 10px;
     transform: translate(-$tx, -$ty);
   }
 }
-
+.loading{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .content {
   max-width: 600px;
   margin: auto;

@@ -37,5 +37,8 @@ body{
 .error-message{
   color: $color-primary;
 }
+
+// 1 cái div có thẻ p ở trong
+
 </style>
   

@@ -11,7 +11,7 @@ const setDoc = (collection) => {
             error.value = null;
         } catch (err) {
             error.value = err.message;
-            console.log('Add error log: '+ err.value);   
+            console.log('Add error log: '+ error.value);   
         }
     }
 

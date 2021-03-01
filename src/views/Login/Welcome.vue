@@ -74,7 +74,7 @@
 
                 //login thành công và ko ném ra bất cứ lỗi nào
                 if(!error.value){
-                    router.push({name: 'Admin'});
+                    router.push({name: 'ClassManage'});
                 }
 
             }

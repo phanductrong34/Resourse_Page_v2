@@ -51,7 +51,6 @@ Khi click vào tab thì đổi biến activeCourse ở ngoài bố
                 showModalCreate.value = !showModalCreate.value;
             }
 
-
             //Load all tab of courses
             const {dataArray : courses , error, load} = getCollection("courses");
             load();

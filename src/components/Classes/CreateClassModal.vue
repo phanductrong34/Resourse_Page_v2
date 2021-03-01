@@ -74,6 +74,7 @@ import { ref,onMounted } from "vue"
 import {projectFirestore, timestamp} from '@/firebase/config'
 import setDoc from '@/composable/setDoc'
 export default {
+    emits: ['closeModal'],
     props: ["showModal"],
     setup(props,context) {
 
@@ -146,7 +147,7 @@ export default {
                         const newClass = {
                             courseID : courseID.value,
                             classID : classID.value,
-                            dateCreated : timestamp(),
+                            createdAt : timestamp(),
                             latestUnlock: 0,
                             studentCount : 0,
                             timeOccur: [
