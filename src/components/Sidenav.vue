@@ -43,6 +43,8 @@ import {projectAuth} from '@/firebase/config'
 import getUser from '@/composable/getUser'
 import useLogout from '@/composable/useLogout'
 import {useRouter} from 'vue-router'
+import { useStore } from 'vuex'
+import _ from 'lodash'
 
  
 export default {
@@ -72,7 +74,18 @@ export default {
         // logout and listen to change to push to login
 
         const {logout, error} = useLogout()
-        const {user} = getUser();
+        const {user,isAdmin} = getUser();
+        const store = useStore();
+        
+        // nơi set admin mỗi lần user có sự thay đổi là đây
+        watchEffect(()=>{
+            // cập nhật user + admin tại nav vì ở đây mới import đc vuex
+            store.commit('user/changeUser',user.value);
+            store.commit('user/changeAdmin',isAdmin.value);
+            
+        })
+
+
         const router = useRouter();
         const logingOut = async()=>{
            await logout();

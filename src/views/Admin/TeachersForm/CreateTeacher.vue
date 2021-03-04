@@ -65,8 +65,7 @@
     import {ref, onMounted} from 'vue'
     import {useRouter} from 'vue-router'
     import setDoc from '@/composable/setDoc'
-    import createUser from '@/composable/createUser'
-    import {timestamp} from '@/firebase/config'
+    import {timestamp ,projectFunctions} from '@/firebase/config'
     export default {
         setup() {
             //SET UP FOR DROPDOWN INPUT
@@ -78,7 +77,6 @@
             /////////////////////////////////
 
             const {error, set} = setDoc("admins")
-            const {error:errCreateUser, create} = createUser();
 
             //ref
             const name = ref("");
@@ -96,25 +94,31 @@
             }
 
             //Tạo user mói ở auth, lấy uid trả về tạo 1 doc lưu thông tin trong firestore (admins)
+            const addAdminRole = projectFunctions.httpsCallable('addAdminRole');
+            const createUser = projectFunctions.httpsCallable('createUser');
             const handleSubmit = async()=> {
                 const admin = {
                     name: name.value,
                     phone: phone.value,
                     email: email.value,
-                    password: password.value,
                     role: role.value,
                     createdAt: timestamp()
                 }
-                const res = await create(admin.email,admin.password);
-                if(!errCreateUser.value){       //nếu tạo user + check form ko có lỗi gì
-                    const uid = res.user.uid;
-                    await set(uid,admin);
-                    if(!error.value){
-                        clearField();
-                        alert(`Add new ${admin.role} succeed !`);
-                    }
+                // tạo user mới trên auth bằng admin SDK
+                const resCreate = await createUser({email: admin.email, password: password.value})
+                const uid = resCreate.data.uid;
+                
+                
+                // tạo doc admin trên firestore
+                await set(uid,admin);
+                // thêm claim cho admin
+                const resAdmin = await addAdminRole({email: admin.email})
+                console.log("🚀 ~ file: CreateTeacher.vue ~ line 116 ~ resAdmin", resAdmin)
+                
+                if(!error.value){
+                    clearField();
+                    alert(`Add new admin-${admin.role} succeed`);
                 }
-
             }
 
             const router = useRouter();
@@ -123,7 +127,7 @@
             }
             
             return  {name,email,password,role,phone,
-                    clearField,handleSubmit,closeModal,error,errCreateUser}
+                    clearField,handleSubmit,closeModal,error}
         }
     }
 </script>

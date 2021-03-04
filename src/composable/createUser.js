@@ -4,6 +4,8 @@ import {ref} from 'vue'
 const error = ref(null)
 
 const create = async(email,password,displayName) => {
+    console.log("🚀 ~ file: createUser.js ~ line 7 ~ password", password)
+    
     try {
         const res = await projectAuth.createUserWithEmailAndPassword(email,password);
         if(!res){

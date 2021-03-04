@@ -30,13 +30,14 @@
     import getCollectionFilter from '@/composable/getCollectionFilter'
     import getDoc from '@/composable/getDoc'
     import { computed, ref, watch, watchEffect } from 'vue';
+    import {useStore} from 'vuex'
     export default {
         props: ['name'],
         components: {Loading},
         setup(props) {
             //////////check admin, nếu uid ko có trong firestore thì admin giữ nguyên null
-            const {data :admin , error: errAdmin, load: loadAdmin} = getDoc("admins")
-            loadAdmin(projectAuth.currentUser.uid)
+            const store = useStore()
+            const admin = computed(()=> store.getters['user/getIsAdmin']);
 
 
             //chỉ lấy những resource có folder trùng với props.name truyền vào thôi

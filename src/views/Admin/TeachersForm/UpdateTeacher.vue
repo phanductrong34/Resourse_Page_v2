@@ -44,9 +44,6 @@
             <div class="row" v-if="err2">
                 <div class="center error-message">{{err2}}</div>
             </div>
-            <div class="row" v-if="errUpdateAuth">
-                <div class="center error-message">{{errUpdateAuth}}</div>
-            </div>
             <div class="row">
                 <div class="col s6">
                     <button class="waves-effect waves-light btn grey lighten-1" @click.prevent="clearField"><i class="material-icons left">cancel</i>Clear</button>
@@ -67,7 +64,7 @@
 <script>
     import {ref, onMounted,watchEffect} from 'vue'
     import {useRouter} from 'vue-router'
-    import {projectAuth,timestamp} from '@/firebase/config'
+    import {timestamp,projectFunctions} from '@/firebase/config'
     import getDoc from '@/composable/getDoc'
     import updateUser from '@/composable/updateUser'
     import updateDoc from '@/composable/updateDoc'
@@ -123,7 +120,7 @@
 
             //update toàn bộ field vào đúng cái id cũ
             const {error: err2, update} = updateDoc("admins")
-            const {error:errUpdateAuth, updateEmailPassword} = updateUser();
+            const updateUser = projectFunctions.httpsCallable('updateUser')
 
             const router = useRouter();
             const handleSubmit = async()=> {
@@ -131,20 +128,17 @@
                     name: name.value,
                     phone: phone.value,
                     email: email.value,
-                    password: password.value,
                     role: role.value,
                     createdAt: timestamp()
                 }
-                const user = projectAuth.currentUser;
-                await updateEmailPassword(user,newAdmin.email,newAdmin.password);
-                // Nếu mà không có lỗi trên auth
-                if(!errUpdateAuth.value){
-                    await update(props.id,newAdmin);
-                    if(!err2.value){
-                        clearField();
-                        alert(`${newAdmin.name} has been updated`);
-                        router.push({name: 'Teachers'});
-                    }
+                //update user ở auth = firebase admin 
+                await updateUser({uid: props.id, email: newAdmin.email, password : password.value})
+                // update user doc ở firestore
+                await update(props.id,newAdmin);
+                if(!err2.value){
+                    clearField();
+                    alert(`${newAdmin.name} has been updated`);
+                    router.push({name: 'Teachers'});
                 }
             }
 
@@ -156,7 +150,7 @@
             }
             
             return  {admin,name,email,password,role,phone, err1, err2,
-                    clearField,handleSubmit,closeModal,errUpdateAuth}
+                    clearField,handleSubmit,closeModal}
         }
     }
 </script>

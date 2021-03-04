@@ -2,6 +2,7 @@ import firebase from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/firestore'
 import 'firebase/storage'
+import 'firebase/functions'
 
 const firebaseConfig = {
     apiKey: "AIzaSyATq-wWOQ2328-4hYWJ-Maaa6wGlKJxHPE",
@@ -16,6 +17,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig)
 
 //hàm này trả ra mỘt promise mà sẽ trả ra user ngay khi khi resolve
+// kết hợp với route gaurd ở bên kia để mỗi lần nhảy trang ta lại check lại sự tồn tại cùa user
+// kết hợp với trường check isAdmin ở meta của các route, ta sẽ check thêm token của admin tại đây mỗi khi nhảy router mới
 firebase.getCurrentUser = () => {
     return new Promise((resolve, reject) => {
         const unsubscribe = firebase.auth().onAuthStateChanged(user => {
@@ -30,6 +33,8 @@ const getCurrentUser = firebase.getCurrentUser;
 const projectAuth = firebase.auth();
 const projectFirestore = firebase.firestore();
 const projectStorage = firebase.storage()
+const projectFunctions = firebase.functions();
 const timestamp = firebase.firestore.FieldValue.serverTimestamp;
 
-export {projectAuth,projectFirestore,projectStorage,timestamp,getCurrentUser}
+export {projectAuth,projectFirestore,projectStorage,projectFunctions, timestamp,getCurrentUser}
+

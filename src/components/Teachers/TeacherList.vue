@@ -17,7 +17,6 @@
                         <div class="teacher-content">
                             <div class="teacher-email">Email: {{ad.email}}</div>
                             <div class="teacher-phone">Phone Number: {{ad.phone}}</div>
-                            <div class="teacher-password">Password: {{ad.password}}</div>
                         </div>
                         <div class="teacher-remove">
                             <button class="waves-effect waves-light btn red darken-4"

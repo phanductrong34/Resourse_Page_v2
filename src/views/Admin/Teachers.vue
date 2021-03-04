@@ -21,7 +21,6 @@
                 <Loading/>
             </div>
             <div v-if="err1" class="error-message">{{err1}}</div>
-            <div v-if="errRemoveAuth" class="error-message">{{errRemoveAuth}}</div>
         </div>
 
         <div class="form">
@@ -38,8 +37,10 @@ import TeacherList from '@/components/Teachers/TeacherList.vue'
 import getCollectionRT from '@/composable/getCollectionRT'
 import removeDoc from '@/composable/removeDoc'
 import removeUser from '@/composable/removeUser'
+import useLogout from "@/composable/useLogout"
 import Loading from '@/components/Loading.vue'
-import {projectAuth} from '@/firebase/config'
+import {projectAuth,projectFunctions} from '@/firebase/config'
+import {useStore} from 'vuex'
 export default {
     components: {
         TeacherList,Loading
@@ -63,47 +64,52 @@ export default {
 
         //handle button click from teacher list
         const router = useRouter();
-        const updateTeacher = (adminID)=>{
-            const uid = projectAuth.currentUser.uid;
-            if(uid == adminID){
-                router.push({name: 'UpdateTeacher',params : {id:adminID}});
-            }else{
-                alert("You can not change data of other admin")
-                // chỗ này làm route guard sẽ hay hơn
-            }
+        const store = useStore();
+        const {logout, error: errLogout} = useLogout();
+        const isAdmin = computed(()=> store.getters['user/getIsAdmin']);
+        const currentUserID = computed(()=> store.getters['user/getCurrentUser'].uid);
+        console.log("🚀 ~ file: Teachers.vue ~ line 70 ~ currentUserID", currentUserID.value)
+        
+        const updateTeacher = (adminID)=>{   //adminID là id của thẻ teacher truyền lên
+            router.push({name: 'UpdateTeacher',params : {id:adminID}});
 
 
         }
 
         const {error: err1, remove} = removeDoc("admins")
-        const {error: errRemoveAuth, deleteUser} = removeUser();
+        const deleteUser = projectFunctions.httpsCallable('deleteUser')
 
         const removeTeacher = async(params)=>{
-            const user = projectAuth.currentUser;
-            const uid = projectAuth.currentUser.uid;
-            if(uid === params.id){
-                const input = String(prompt("Type admin's password to remove: "));
-                if(input === params.password){
-    
-                    await deleteUser(user);
-                    if(!errRemoveAuth.value){
+            const currentUid = currentUserID.value;
+            if(currentUid == params.id){  // tức tự xóa chính mình
+                const checkDelete = confirm("You are about to delete yourself. Continue?");
+                if(checkDelete){
+                        //remove doc trước đã, vì vẫn còn đăng nhập
                         await remove(params.id);
                         if(!err1.value){
-                            router.push({name: 'Teachers'});
-                            alert("Remove admin sucessful");
+                            await deleteUser({uid: params.id});
+                            logout();
+                            router.push({name: 'Welcome'})
                         }
-                    }
-    
-                }else{
-                    alert("Wrong password, Failed to remove admin")
                 }
             }else{
-                alert("You can not remove others admin account")
+                const checkDeleteOther = confirm("This is not your account. Continue delete?");
+                if(checkDeleteOther){
+                        //remove doc trước đã, vì vẫn còn đăng nhập
+                        await remove(params.id);
+                        if(!err1.value){
+                            await deleteUser({uid: params.id});
+                            router.push({name: "Teachers"});
+                            alert("remove other teacher succeed!")
+                        }
+                }
             }
 
         }
+
+        
         return {admins, error, filterTeachers, filterMentors,
-                updateTeacher,removeTeacher,err1,errRemoveAuth}
+                updateTeacher,removeTeacher,err1}
       
     }
 }

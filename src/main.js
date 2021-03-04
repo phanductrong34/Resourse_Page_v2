@@ -7,13 +7,12 @@ TẠO VÀ ESTABLISH VUE VÀO APP
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import store from './store'
+import {store} from './store/index'
 
 // import component;
 import Image from '@/components/Base/Image.vue'
 import Loading from '@/components/Base/Loading.vue'
 import NoData from '@/components/Base/NoData.vue'
-
 const app = createApp(App);
 
 //register gloabal component
