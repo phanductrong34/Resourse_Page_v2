@@ -55,11 +55,12 @@
 <script>
     import {ref,onMounted} from 'vue'
     import {useRouter} from 'vue-router'
-    import {timestamp,projectFirestore} from '@/firebase/config'
+    import {timestamp,projectFirestore,projectFunctions} from '@/firebase/config'
     import updateDoc from '@/composable/updateDoc'
     import getDoc from '@/composable/getDoc'
     import removeDoc from '@/composable/removeDoc'
     import removeDocsFilter from '@/composable/removeDocsFilter'
+    import getCollectionFilter from '@/composable/getCollectionFilter'
     export default {
         props: ['id'],
         setup(props) {
@@ -71,10 +72,13 @@
             })
 
             const router = useRouter();
-            const {error :errUpdate, update} = updateDoc("courses");
             const {data : course , error: errGet, load} = getDoc("courses")
+            const {error :errUpdate, update} = updateDoc("courses");
             const {error : errRemove, remove} = removeDoc("courses");
+            const {error : errRemoveStudent, remove: removeStudent} = removeDoc("students");
             const {error : errRemoveFilter, remove: removeDocs} = removeDocsFilter();
+
+            const {dataArray: filterStudents , error : errGetStudent, load : loadStudent} = getCollectionFilter();
 
             //ref//
             const error = ref(null);
@@ -99,18 +103,31 @@
                 type.value = "";
             }
 
-            // xóa ko chỉ course mà cả các lessons có courseID đó, class có courseID đó
+            // cóa theo trình tự nhỏ lên trên, xóa sinh viên có mã lớp, xóa lớp có mã course, xóa course
+            const deleteUser = projectFunctions.httpsCallable("deleteUser");
+
             const deleteCourse = async()=> {
+                error.value = null;
+                // xóa sinh viên có courseID trong cả auth lẫn firestore
+                await loadStudent("students","courseID",props.id);
+                filterStudents.value.forEach((student)=>{
+                    deleteUser({uid: student.id});
+                    removeStudent(student.id)
+                    console.log(`delete user ${student.nickname}`);
+                })
+
+                // xóa class có courseID
+                removeDocs("classes","courseID",props.id);
                 //Xóa lessons liên quan
                 removeDocs("lessons",'courseID',props.id);
                 // Xóa bản thân course
                await remove(props.id);
+
                if(!errRemove.value){
                    alert('Delete course succeed!');
                     // lấy id của doc đầu tiên trong collection courses
                     const res = await projectFirestore.collection("courses").orderBy('createdAt','desc').limit(1).get();
                     const newID = (res.docs)[0].id;
-
                    router.push({name: 'Lessons', params:{id: newID}});
                }
             }

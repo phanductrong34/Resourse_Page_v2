@@ -7,8 +7,8 @@
                 @click="closeUpdateModal"
             ></div>
         </transition>
-
         <transition name="slideModal" appear>
+
             <div v-if="showModal" class="modal-card card">
 
                 <form @submit.prevent="handleSubmit" v-if="student">
@@ -62,11 +62,12 @@
 </template>
 
 <script>
-import { ref,watchEffect} from "vue"
-import {projectAuth} from '@/firebase/config'
+import { ref,watchEffect,computed} from "vue"
+import {projectAuth,projectFunctions} from '@/firebase/config'
 import removeDoc from '@/composable/removeDoc'
 import updateDoc from '@/composable/updateDoc'
 import getDoc from '@/composable/getDoc'
+import {useStore} from 'vuex'
 
 export default {
     emits: ['closeModal','updateCount'],
@@ -82,7 +83,7 @@ export default {
         const fullname = ref("");
         const nickname =ref("");
         const phone = ref("");
-
+        
         // lọc ra student đang sửa
         const student = ref(null);
         watchEffect(async()=>{
@@ -127,11 +128,14 @@ export default {
         }
 
         //hàm xóa student
-
+        const store = useStore();
+        const isAdmin = computed(()=> store.getters['user/getIsAdmin']);
+        const deleteUser = projectFunctions.httpsCallable("deleteUser")
         const deleteStudent = async() => {
-            const check = prompt("Type your admin password to delete");
-            if(check != null && check == password.value){
-                await remove(props.studentID);
+            if(isAdmin.value){
+                //delete ở Auth trước
+                deleteUser({uid: props.studentID});
+                remove(props.studentID);
                 if(!errRemove.value){
                     context.emit('updateCount',1);
                     closeUpdateModal();
@@ -139,24 +143,35 @@ export default {
                 }
 
             }else{
-                alert ("Password Incorrect. Failed to delete File")
+                alert ("You are not allow to delete student")
             }
         }
 
 
         const handleSubmit = async() =>{
-            const newStudent = {
-                fullname: fullname.value,
-                nickname: nickname.value,
-                phone: phone.value
+            error.value = "";
+            if(nickname.value.length > 6){
+                error.value ="Student nickname must less than 7 character";
+            }else{
+                if(isAdmin.value){
+                    const newStudent = {
+                        fullname: fullname.value,
+                        nickname: nickname.value,
+                        phone: phone.value
+                    }
+                    await update(props.studentID,newStudent);
+                    // đánh đông lên StudentSection để nó load lại
+                    context.emit('updateCount',1);
+                    //resetField và đóng modal 
+                    resetField();
+                    closeUpdateModal();
+                    alert("Update students succeed!")
+                }else{
+                    alert("You are not allow to update student")
+                }
+
             }
-            await update(props.studentID,newStudent);
-            // đánh đông lên StudentSection để nó load lại
-            context.emit('updateCount',1);
-            //resetField và đóng modal 
-            resetField();
-            closeUpdateModal();
-            alert("Update students succeed!")
+
         }
 
         return {fullname,nickname,phone,errUpdate,

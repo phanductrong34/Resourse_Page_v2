@@ -9,9 +9,13 @@
                     <h3 class="center">Create</h3>
                 </div>
                 <div class="row">
-                    <div class="input-field col s12">
+                    <div class="input-field col s8">
                         <input id="admin-name" type="text" class="validate" v-model="name" required>
                         <label class="active"  for="admin-name">Name</label>
+                    </div>
+                    <div class="input-field col s4">
+                        <input id="admin-nickname" type="text" class="validate" v-model="nickname" required>
+                        <label class="active"  for="admin-nickname">Nickname</label>
                     </div>
                 </div>
                 <div class="row">
@@ -45,8 +49,8 @@
                 <div class="row" v-if="error">
                     <div class="center error-message">{{error}}</div>
                 </div>
-                <div class="row" v-if="errCreateUser">
-                    <div class="center error-message">{{errCreateUser}}</div>
+                <div class="row" v-if="errSet">
+                    <div class="center error-message">{{errSet}}</div>
                 </div>
                 <div class="row">
                     <div class="col s6">
@@ -75,18 +79,22 @@
                 });
             })
             /////////////////////////////////
-
-            const {error, set} = setDoc("admins")
+            const router = useRouter();
+            const {error:errSet, set} = setDoc("admins")
 
             //ref
+            const error = ref(null);
             const name = ref("");
+            const nickname = ref("");
             const email = ref("");
             const password = ref("");
             const role = ref("");
             const phone = ref("");
             
             const clearField = ()=>{
+                error.value = null;
                 name.value = "";
+                nickname.value = "";
                 email.value = "";
                 password.value = "";
                 role.value = "";
@@ -97,37 +105,49 @@
             const addAdminRole = projectFunctions.httpsCallable('addAdminRole');
             const createUser = projectFunctions.httpsCallable('createUser');
             const handleSubmit = async()=> {
-                const admin = {
-                    name: name.value,
-                    phone: phone.value,
-                    email: email.value,
-                    role: role.value,
-                    createdAt: timestamp()
-                }
-                // tạo user mới trên auth bằng admin SDK
-                const resCreate = await createUser({email: admin.email, password: password.value})
-                const uid = resCreate.data.uid;
-                
-                
-                // tạo doc admin trên firestore
-                await set(uid,admin);
-                // thêm claim cho admin
-                const resAdmin = await addAdminRole({email: admin.email})
-                console.log("🚀 ~ file: CreateTeacher.vue ~ line 116 ~ resAdmin", resAdmin)
-                
-                if(!error.value){
-                    clearField();
-                    alert(`Add new admin-${admin.role} succeed`);
+                error.value = null;
+                if(nickname.value.length > 6){
+                    error.value = "Nickname must less than 7 character"
+                }else{
+                    let avaRef = null;
+                    if(role.value == 'Teacher') avaRef = "teacher/ava-teacher.png"
+                    else if(role.value == 'Mentor') avaRef = "teacher/ava-mentor.png";
+
+                    const admin = {
+                        avaRef,
+                        name: name.value,
+                        nickname: nickname.value,
+                        phone: phone.value,
+                        email: email.value,
+                        role: role.value,
+                        createdAt: timestamp()
+                    }
+                    // tạo user mới trên auth bằng admin SDK
+                    const resCreate = await createUser({email: admin.email, password: password.value})
+                    const uid = resCreate.data.uid;
+                    
+                    
+                    // tạo doc admin trên firestore
+                    await set(uid,admin);
+                    // thêm claim cho admin
+                    const resAdmin = await addAdminRole({email: admin.email})
+                    console.log("🚀 ~ file: CreateTeacher.vue ~ line 116 ~ resAdmin", resAdmin)
+                    
+                    if(!errSet.value){
+                        clearField();
+                        alert(`Add new admin-${admin.role} succeed`);
+                        router.push({name: 'Teachers'})
+                    }
                 }
             }
 
-            const router = useRouter();
+            
             const closeModal = ()=>{
                 router.push({name: 'Teachers'})
             }
             
-            return  {name,email,password,role,phone,
-                    clearField,handleSubmit,closeModal,error}
+            return  {name,email,password,role,phone,nickname,
+                    clearField,handleSubmit,closeModal,error,errSet}
         }
     }
 </script>

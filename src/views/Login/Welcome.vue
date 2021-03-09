@@ -41,6 +41,8 @@
     import {ref,onMounted} from 'vue'
     import {useRouter} from 'vue-router'
     import useLogin from '@/composable/useLogin'
+    import {useStore} from 'vuex'
+    import getUser from '@/composable/getUser'
     export default {
         setup() {
             onMounted(()=>{
@@ -66,15 +68,25 @@
             
             const email = ref("");
             const password = ref("");
+            const {user,isAdmin} = getUser();  // dặt sẵn biến và khởi tạo 1 hàm onAuth ở đây đã
 
             const router = useRouter();
             const {login, error} = useLogin();
+            const store = useStore();
             const handleSubmit = async () => {
-                const res = await login(email.value,password.value);
+                store.dispatch('user/resetUser');
 
+                const res = await login(email.value,password.value);  //khi login đổi user thì onAuthStateChange ở main ko chạy, nhưng chạy trong getUser
+                await store.dispatch('user/updateUserData',{user: user.value, isAdmin : isAdmin.value});
+                console.log("dispatch success", user.value, isAdmin.value);
                 //login thành công và ko ném ra bất cứ lỗi nào
                 if(!error.value){
-                    router.push({name: 'ClassManage'});
+                    // check admin để đẩy
+                    if(isAdmin.value){
+                        router.push({name: 'ClassManage'});
+                    }else{
+                        router.push({name:'User'});
+                    }
                 }
 
             }

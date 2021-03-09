@@ -26,14 +26,13 @@
 
 <script>
     import {projectAuth} from '@/firebase/config'
-    import Loading from '@/components/Loading'
     import getCollectionFilter from '@/composable/getCollectionFilter'
     import getDoc from '@/composable/getDoc'
     import { computed, ref, watch, watchEffect } from 'vue';
     import {useStore} from 'vuex'
     export default {
         props: ['name'],
-        components: {Loading},
+        components: {},
         setup(props) {
             //////////check admin, nếu uid ko có trong firestore thì admin giữ nguyên null
             const store = useStore()

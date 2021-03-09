@@ -12,13 +12,12 @@
 import {ref, watchEffect,watch} from 'vue'
 import {useRouter} from 'vue-router'
 import CourseNav from '@/components/Courses/CourseNav.vue'
-import Loading from '@/components/Loading.vue' 
 import getColectionRT from '@/composable/getCollectionRT'
 import _ from 'lodash'
 
 export default {
     components: {
-        CourseNav,Loading
+        CourseNav
     },
     setup() {
         const {documents : courses,error} = getColectionRT("courses");

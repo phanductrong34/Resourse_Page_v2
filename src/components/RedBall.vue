@@ -13,7 +13,8 @@
 </template>
 
 <script>
-import { computed } from "vue";
+import { computed,watch } from "vue";
+import {useRoute} from 'vue-router';
 export default {
     props: ["mode"],
     setup(props) {
@@ -21,6 +22,17 @@ export default {
         const modeComputed = computed(() => {
             return "mode" + props.mode;
         });
+
+        const route = useRoute();
+        
+        const modeCompute = computed(()=>{
+            const change = route
+            const routeName = route.name;
+            const mode = 1;
+            console.log("🚀 ~ file: RedBall.vue ~ line 31 ~ routeName", routeName)
+            return "mode" + mode;
+        })
+
         return { modeComputed };
     },
 };

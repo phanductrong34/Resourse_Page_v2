@@ -9,13 +9,13 @@ Khi click vào tab thì đổi biến activeCourse ở ngoài bố
     <div class="class-nav">
         
         <h3 class="title">Classes.</h3>
-        <div class="course-list" v-if="courses.length">
+        <div class="course-list" v-if="filterCourseType.length">
             <div   
-                v-for="course in courses" 
-                :key="course.id"
-                :class="[{active : course.type === activeCourse},'course']"
-                @click="$emit('activateCourse',course.type)">
-                    {{course.type}}
+                v-for="type in filterCourseType" 
+                :key="type"
+                :class="[{active : type === activeCourse},'course']"
+                @click="$emit('activateCourse',type)">
+                    {{type}}
             </div>
         </div>
         <div class="course-list" v-else>
@@ -37,7 +37,7 @@ Khi click vào tab thì đổi biến activeCourse ở ngoài bố
 <script>
     import CreateClassModal from "@/components/Classes/CreateClassModal"
     import getCollection from "@/composable/getCollection"
-    import {ref} from 'vue'
+    import {ref,computed} from 'vue'
 
     export default {
         components: {
@@ -55,7 +55,17 @@ Khi click vào tab thì đổi biến activeCourse ở ngoài bố
             const {dataArray : courses , error, load} = getCollection("courses");
             load();
             
-            return{courses , error,
+            const filterCourseType = computed(()=>{
+                if(courses.value.length == 0){ return []}
+                else{
+                    let newSet = new Set();
+                    courses.value.forEach(course => {
+                        newSet.add(course.type);
+                    })
+                    return [...newSet];
+                }
+            })
+            return{courses , error,filterCourseType,
                    showModalCreate,toggleModal}
         }
     }

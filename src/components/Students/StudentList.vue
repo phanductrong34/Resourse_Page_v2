@@ -21,13 +21,12 @@
 </template>
 
 <script>
-    import Loading from '@/components/Loading'
     import UpdateStudentModal from '@/components/Students/UpdateStudentModal'
     import {ref} from 'vue'
     export default {
         props: ['students'],
         components:{
-            Loading, UpdateStudentModal
+            UpdateStudentModal
         },
         setup(props) {
             //set up modal control

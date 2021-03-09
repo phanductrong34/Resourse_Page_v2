@@ -9,7 +9,7 @@
                                 @activateClass="activeClass = $event"  @activateClassID="activeClassID = $event"/>
             </div>
 
-            <StudentSection :activeClassID="activeClassID"/>
+            <StudentSection :activeClassID="activeClassID" :activeCourseID="activeCourseID"/>
             <LessonSection :activeCourseID="activeCourseID" :activeClassID="activeClassID"/>
 
         </div>
@@ -27,6 +27,7 @@ import ClassNav from "@/components/Classes/ClassNav.vue"
 import SliderCard2 from "@/components/Classes/SliderCard2"
 import StudentSection from "@/components/Students/StudentSection.vue"
 import LessonSection from "@/components/Lessons/LessonSection.vue"
+import _ from 'lodash'
 
 import getCollectionRT from "@/composable/getCollectionRT"
 
@@ -59,7 +60,7 @@ export default {
 
 
     ///////////////////// 2.   FILTER CLASSES    //////////////////////////////
-        const filterClasses = ref(null)
+        const filterClasses = ref([])
         watchEffect(()=> {
             if(allClasses.value != null){
                 filterClasses.value = allClasses.value.filter((classi)=> {
@@ -69,9 +70,9 @@ export default {
         })
     //////////////////// 3.   ACTIVE CLASS ID  + ACTIVE COURSE ID //////////////
         watchEffect(()=> {
-            if(filterClasses.value != null){
-                activeClassID.value = (filterClasses.value)[activeClass.value]['classID'];
-                activeCourseID.value = (filterClasses.value)[activeClass.value]['courseID'];
+            if(filterClasses.value.length !==0){
+                activeClassID.value = _.get((filterClasses.value)[activeClass.value], 'classID');
+                activeCourseID.value = _.get((filterClasses.value)[activeClass.value],'courseID');
             }
         })
 

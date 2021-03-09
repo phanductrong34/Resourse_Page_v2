@@ -62,7 +62,7 @@ $shapeDimentions: 10px;
   align-content: flex-start;
   .column {
     width: 100%;
-    height: 100px;
+    height: 35px;
     margin: 5px;
     border: 1px solid transparentize(white, 0.9);
     display: flex;

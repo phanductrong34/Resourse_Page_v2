@@ -8,9 +8,10 @@
         <button class="btn waves-effect waves-light red darken-4" @click="toggleModal">
             add student
         </button>
-        <CreateStudentModal :activeClassID="activeClassID" :studentCount="studentCount"
+        <div class="reload" @click="$emit('reload')"><i class="material-icons">cached</i></div>
+        <CreateStudentModal :activeClassID="activeClassID" :studentCount="studentCount" :activeCourseID="activeCourseID"
                             :showModal="showModalCreate" @closeModal="toggleModal" 
-                            @updateCount="$emit('updateCount',$event)"/>
+                            @reload="$emit('reload')"/>
     </div>
 </template>
 
@@ -20,7 +21,7 @@
 
     export default {
         props:[
-            'activeClassID',"studentCount",'submitCount'
+            'activeClassID',"studentCount",'submitCount','activeCourseID'
         ],
         components: {
           CreateStudentModal  
@@ -58,5 +59,15 @@
         text-transform: lowercase;
         font-family: "Averta Semi Bold";
         font-size: 15px;
+    }
+    .reload{
+        cursor: pointer;
+        @include transition;
+        transform-origin: center center;
+        margin: 0;
+        &:hover{
+            transform: scale(1.1);        
+        }
+
     }
 </style>

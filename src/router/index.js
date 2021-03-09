@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import {projectAuth,getCurrentUser} from '@/firebase/config'
+import {store} from '../store/index'
+
 import Welcome from '../views/Login/Welcome.vue'
 import Admin from '../views/Admin/Admin.vue'
 import ClassManage from '../views/Admin/ClassManage.vue'
@@ -17,12 +19,56 @@ import CreateLesson from '../views/Admin/CoursesCollection/CreateLesson.vue'
 import UpdateCourse from '../views/Admin/CoursesCollection/UpdateCourse.vue'
 import UpdateLesson from '../views/Admin/CoursesCollection/UpdateLesson.vue'
 
+// import NotFound from '../views/NotFound/NotFound.vue'
+
+//Student
+import User from '../views/User/User.vue'
+import Laboratory from '../views/User/Laboratory.vue'
+import Dashboard from '../views/User/Dashboard.vue'
+import Slide from '../views/User/LaboCollection/Slide.vue'
+import LessonUser from '../views/User/DashboardCollection/LessonUser.vue'
+
+
+// GUARD: protect welcome screen---- Cái này phải viết trên biến router
+const requiredNoAuth = (to, from,next)=>{
+
+  console.log("visit welcome")
+  const user = projectAuth.currentUser
+  const isAdmin = store.getters['user/getIsAdmin']
+  console.log("🚀 ~ file: index.js ~ line 31 ~ isAdmin",user, isAdmin)
+  
+  if(user && isAdmin){
+    next({name: 'ClassManage'});
+  }else if(user && !isAdmin){
+    next({name: 'User'})
+  }else{
+    next();  // cho next tới Welcome
+  }
+}
+
+
+const requiredLoadLesson = (to,from,next) => {
+  const haveID = store.getters['lessons/getLatestUnlockID'];
+  if(!from.name){
+    next({name:'Dashboard'});
+  }else if(from.name && haveID){
+    next()
+  }
+}
+
+
 const routes = [
   {
     path: '/',
     name: 'Welcome',
     component: Welcome,
     meta: {requiredAuth: false},
+    beforeEnter: requiredNoAuth
+  },
+  {
+    path:'/:catchAll(.*)',
+    name: 'NotFound',
+    component: ()=> import('../views/NotFound/NotFound.vue')
   },
   {
     path: '/admin',
@@ -133,6 +179,61 @@ const routes = [
       }
     ]
   },
+  {
+    path: '/user',
+    name: 'User',
+    component: User,
+    meta: {requiredAuth: true},
+    redirect: '/user/dashboard',
+    children:[
+      {
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: Dashboard,
+        meta: {requiredAuth : true},
+        children:[
+          {
+            path:'lesson/:number',
+            name: 'LessonUser',
+            props:true,
+            component:LessonUser,
+            meta:{requiredAuth:true}
+          }
+        ]
+      },
+      {
+        path:'laboratory',
+        name: 'Laboratory',
+        component: Laboratory,
+        meta: {requiredAuth: true},
+        beforeEnter: requiredLoadLesson,
+        children: [
+          {
+            path: 'slide/:id',
+            name: 'Slide',
+            component: Slide,
+            props:true,
+            meta: {requiredAuth: true},
+          }
+        ]
+      },
+      {
+        path: 'resource',
+        name: 'ResourceUser',
+        component: Resource,
+        meta: {requiredAuth: true},
+        children:[
+          {
+            path: 'folders/:name',
+            name: 'Folders',
+            component: Folders,
+            props:true,
+            meta: {requiredAuth: true}
+          }
+        ]
+      },
+    ]
+  }
 
 ]
 
@@ -141,15 +242,18 @@ const router = createRouter({
   routes
 })
 
-// Tất cả các route đều đc gán cái guard này trước khi truy cập vào
+// Tất cả các route đều đc gán cái guard này trước khi truy cập vào  ---- cái này phải viết sau biến router, thì mới truy cập trường meta đc
 router.beforeEach(async(to, from, next) => {
   const requiredAuth = to.matched.some(record => record.meta.requiredAuth);
   if (requiredAuth && !await getCurrentUser()){
+    console.log("routeGuard bắt đc và ném về login")
     next({name: 'Welcome'});
   }else{
     next();
   }
 });
+
+
 
 export default router
 

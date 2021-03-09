@@ -3,7 +3,9 @@
         <ul class="collapsible">
             <li v-for="ad in admins" :key="ad.id">
                 <div :class="[{'red-border' : ad.role == 'Teacher'},'collapsible-header teacher-header']">
-                    <div class="teacher-ava"></div>
+                    <div class="teacher-ava">
+                        <Image class="teacher-img" :refUrl="ad.avaRef"/>
+                    </div>
                     <div class="teacher-title">
                         <h5 class="teacher-name">{{ad.name}}</h5>
                         <p class="teacher-role">{{ad.role}}</p>
@@ -15,6 +17,7 @@
                 <div class="collapsible-body">
                     <div class="teacher-body">
                         <div class="teacher-content">
+                            <div class="teacher-nickname">Nickname: {{ad.nickname}}</div>
                             <div class="teacher-email">Email: {{ad.email}}</div>
                             <div class="teacher-phone">Phone Number: {{ad.phone}}</div>
                         </div>
@@ -60,8 +63,16 @@
         width: 50px;
         height: 50px;
         border-radius: 50%;
-        background-color: $color-gray-dark;
         margin-right: 15px;
+        overflow: hidden;
+        position: relative;
+    }
+    .teacher-img{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%,-50%);
+        width: 100%;
     }
     .teacher-role{
         color: $color-gray-dark;

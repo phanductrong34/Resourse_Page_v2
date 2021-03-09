@@ -14,6 +14,7 @@
                 <form @submit.prevent="handleSubmit">
                     <div class="row center title">
                         <h3>Create new students for {{activeClassID}}</h3>
+                        <h5 class="default-password">Password - {{defaultPass}}</h5>
                     </div>
                     <!-- LIST OF NEW STUDENTS -->
                     <div class="row add-student" v-for="(student,index) in newStudents" :key="index">
@@ -63,13 +64,14 @@
 </template>
 
 <script>
-import { ref} from "vue"
-import {timestamp,projectStorage} from '@/firebase/config'
-import useCollection from '@/composable/useCollection'
+import { computed, ref} from "vue"
+import {timestamp} from '@/firebase/config'
+import setDoc from '@/composable/setDoc'
+import {projectFunctions} from '@/firebase/config'
 
 export default {
-    emits:['closeModal','updateCount'],
-    props: ["showModal","activeClassID" ,"studentCount"],
+    emits:['closeModal','reload'],
+    props: ["showModal","activeClassID" ,"studentCount","activeCourseID"],
     setup(props,context) {
 
         // ref
@@ -77,13 +79,14 @@ export default {
         const error = ref("");
         const curNickname = ref("");
         const curEmail = ref("");
+        const defaultPass = computed(()=>{
+            let string = props.activeCourseID + props.activeClassID;
+            return string.replaceAll(/\s/g,'').replace(/[^\w\s]/gi, '').toLowerCase();
+        })
         //DOM
         const emailTag = ref(null);
         const nicknameTag = ref(null)
         const newStudents = ref([])
-
-        //get ava list 
-        projectStorage.ref().child('')
 
         // hàm reset toàn bộ field
         const resetField = ()=>{
@@ -102,57 +105,79 @@ export default {
 
         /// các function tiện ích cho riêng modal tạo học sinh
         const addGmail = ()=>{
-            curEmail.value = curEmail.value + '@gmail.com';
+            if(!curEmail.value.includes("@gmail.com")){
+                curEmail.value = curEmail.value + '@gmail.com';
+            }
         }
 
+        
         const addStudent = ()=>{
             error.value = "";
-            if(curNickname.value && curEmail.value){
-                const newStudent = {
-                    nickname : curNickname.value,
-                    email: curEmail.value,
-                }
-                newStudents.value.push(newStudent);
-                //clearField và set lại focus
-                resetField();
-                nicknameTag.value.focus();
+            //check độ dài nick name không > 6
+            if(curNickname.value.length > 6){
+                error.value = "Student nickname must less than 7 character"
             }else{
-                error.value = "You must fill all field to add"
-                !curNickname.value ? nicknameTag.value.focus() : emailTag.value.focus();
+                if(curNickname.value && curEmail.value){
+                    // tạo trên auth đã rồi lấy về uid để setDoc
+                    const newStudent = {
+                        nickname : curNickname.value,
+                        email: curEmail.value,
+                    }
+    
+                    newStudents.value.push(newStudent);
+                    //clearField và set lại focus
+                    resetField();
+                    nicknameTag.value.focus();
+                }else{
+                    error.value = "You must fill all field to add"
+                    !curNickname.value ? nicknameTag.value.focus() : emailTag.value.focus();
+                }
             }
-
         }
+
 
         const deleteStudent = (index)=>{
             newStudents.value.splice(index,1);
         }
 
-        const {error: errAdd, addDoc : addStudentDoc} = useCollection("students")
+        const {error : errSetStudent, set: setStudentDoc} = setDoc("students")
+        const createUser = projectFunctions.httpsCallable("createUser");
 
         const handleSubmit = () =>{
-            const newStudentsArray = newStudents.value.map((student,index) => {
-                return {...student,
-                        classID: props.activeClassID,
-                        fullname: "",
-                        works: [],
-                        phone: "",
-                        avaRef:`ava/ava-(${Math.ceil(Math.random()*50)}).svg`,
-                        createdAt: timestamp()
-                    };
-            });
-            console.log(newStudentsArray);
-            newStudentsArray.forEach(async(newStudent)=>{
-                await addStudentDoc(newStudent);
-            });
-            //đánh đông lên StudentSection để nó load lại
-            context.emit('updateCount',newStudentsArray.length);
-            //resetField và đóng modal 
-            resetField();
-            closeCreateModal();
-            alert("Add students succeed!")
+            error.value ="";
+            if(newStudents.value.length !== 0){
+                const newStudentsArray = newStudents.value.map((student,index) => {
+                    return {...student,
+                            classID: props.activeClassID,
+                            courseID: props.activeCourseID,
+                            fullname: "",
+                            works: [],
+                            phone: "",
+                            avaRef:`ava/ava-(${Math.ceil(Math.random()*50)}).svg`,
+                            createdAt: timestamp()
+                        };
+                });
+                console.log(newStudentsArray);
+                newStudentsArray.forEach(async(newStudent)=>{
+                    // Tạo ra trên Auth bằng admin để nó trả lại uid
+                    const resCreate = await createUser({email: newStudent.email, password: defaultPass.value})
+                    const uid = resCreate.data.uid;
+    
+                    //dùng uid để set lên firestore
+                    await setStudentDoc(uid,newStudent);
+                });
+                //đánh đông lên StudentSection để nó load lại
+                // context.emit('reload');
+                //resetField và đóng modal 
+                resetField();
+                closeCreateModal();
+            }else{
+                error.value = "You must submit at least 1 student"
+            }
+
         }
 
-        return {curEmail,curNickname,emailTag,nicknameTag,newStudents,
+        return {curEmail,curNickname,emailTag,nicknameTag,newStudents,defaultPass,
                 addGmail, addStudent,deleteStudent,
                 error,closeCreateModal,handleSubmit};
     },
@@ -209,7 +234,11 @@ export default {
     padding-left: 10px;
     margin-bottom: 2rem;
 }
-
+.default-password{
+    font-size: 1.2rem;
+    color: $color-gray-dark;
+    margin-top: 1rem;
+}
 .student-number{
     padding: 2rem 0 2rem 0;
     color: $color-gray-dark;

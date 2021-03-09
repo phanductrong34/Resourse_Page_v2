@@ -17,15 +17,23 @@
             </span>
         </div>
         <img class="cards-background" :src="classiPhoto"/>
+
+        <div class="class-edit" @click="$emit('toggleModal')"><i class="material-icons">edit</i></div>
+        
+
     </div>
 </template>
 
 <script>
-import { computed } from 'vue';
+import UpdateClassModal from '@/components/Classes/UpdateClassModal'
+import { computed,ref } from 'vue';
 export default {
     props: ['classi','type'],
+    components: {
+        UpdateClassModal
+    },
     setup(props){
-
+        
         // Convert raw data to show 
         const classiName = computed(()=>{
             if(!props.classi.id.includes(".")){
@@ -60,6 +68,7 @@ export default {
     display: inline-block;
     width: 100%;
     height: 100%;
+    // z-index: -1;
     
 
     &-content {
@@ -72,6 +81,7 @@ export default {
         font-family: "Averta Semi Bold";
         color: rgba($color-white, 0.3);
         line-height: 1.4rem;
+        // z-index: 1;
 
         &-name {
             font-size: 1.2rem;
@@ -93,6 +103,25 @@ export default {
         height: 101%;
     }
 }
+.class-edit{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 2rem;
+    height: 2rem;
+    color: white;
+    border-radius: 25%;
+    position: absolute;
+    bottom: 7%;
+    left: 4%;
+    // z-index: 2;
+    @include transition;
 
+    &:hover{
+        color: $color-gray-dark;
+        
+        background-color: $color-gray-light-2;
+    }
+}
 
 </style>

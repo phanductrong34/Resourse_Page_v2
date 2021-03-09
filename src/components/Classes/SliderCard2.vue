@@ -29,7 +29,7 @@
                     :class="[{active : index == activeClass},'card-class']" 
                 >
                     <!-- card class bây h chỉ nhận nhiệm vụ hiển thị từ id thôi -->
-                    <CardClass2 :classi="classi" :type="activeCourse"/>
+                    <CardClass2 :classi="classi" :type="activeCourse" @toggleModal="toggleModal"/>
                 </div>
                 <div 
                     v-else   
@@ -44,6 +44,7 @@
            <span v-for="index in maxPage+1" :key="index" :class="[{active: index-1 == pagination },'dot']"></span>
        </div>
     </div>
+    <UpdateClassModal :showModal="showModalUpdate" @closeModal="toggleModal" :classID="activeClassID"/>
 
 </template>
 
@@ -51,13 +52,20 @@
     import {computed, ref, watch, watchEffect} from 'vue'
     import getCollectionRT from '@/composable/getCollectionRT'
     import CardClass2 from '@/components/Classes/CardClass2'
+    import UpdateClassModal from '@/components/Classes/UpdateClassModal'
     import {projectFirestore} from '@/firebase/config'
     export default {
         components:{
-            CardClass2
+            CardClass2,UpdateClassModal,
         },
         props: ['cardWidth','cardHeight', 'cardSpace', 'cardCount','activeCourse', 'activeClass','activeClassID'],
         setup(props) {
+
+                        //Model control
+            const showModalUpdate = ref(false);
+            const toggleModal = ()=> {      
+                    showModalUpdate.value = !showModalUpdate.value;   
+            }
     //STYLING DOM (ta chỉ quy định chiều dài + rộng + giãn cách của card thôi)
 
                 //Wrapper là cái bọc che, overflow là cho dài ra hẳn
@@ -127,6 +135,7 @@
             // Click vào card thì update lại activeClass ==> ta watch cái biến này để dịch chuyển container, thay vì chạy event thay đổi trực tiếp transform luôn
 
             return{
+                showModalUpdate,toggleModal,
                 containerWrapper,containerOverflow,card,
                 sliderChange,pagination,wrapperWidth,startMargin,maxPage,
                 classes,filterClasses,

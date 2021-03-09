@@ -8,12 +8,27 @@
                 </a>
             </div>
             <div class="main-container">
-                <ul class="router">
-                    <li @click="changeBallMode(1)"><router-link :to="{name: 'ClassManage'}">Class Manage</router-link></li>
-                    <li @click="changeBallMode(2)"><router-link :to="{name: 'Courses'}">Courses</router-link></li>
-                    <li @click="changeBallMode(3)"><router-link :to="{name: 'Resource'}">Resource</router-link></li>
-                    <li @click="changeBallMode(4)"><router-link :to="{name: 'Teachers'}">Teacher</router-link></li>
+                <div class="user-info" v-if="userData">
+                    <div class="user-ava"><Image class="user-img" :refUrl="userData.avaRef"/></div>
+                    <div class="user-title">
+                        <div class="user-nickname">{{userData.nickname}}</div>
+                        <div class="user-content" v-if="isAdmin">{{userData.role}}</div>
+                        <div v-else>{{userData.classID}}</div>
+                    </div>
+                </div>
+                <div class="user-info" v-else><Loading/></div>
+                <ul class="router" v-if="isAdmin">
+                    <li><router-link :to="{name: 'ClassManage'}">Class Manage</router-link></li>
+                    <li><router-link :to="{name: 'Courses'}">Courses</router-link></li>
+                    <li><router-link :to="{name: 'Resource'}">Resource</router-link></li>
+                    <li><router-link :to="{name: 'Teachers'}">Teacher</router-link></li>
                 </ul>
+                <ul class="router" v-else>
+                    <li><router-link :to="{name: 'Dashboard'}">Dashboard</router-link></li>
+                    <li><router-link :to="{name: 'Laboratory'}">Laboratory</router-link></li>
+                    <li><router-link :to="{name: 'ResourceUser'}">Resource</router-link></li>
+                </ul>
+                
                 <div class="signout-container">
                     <div class="lottie" data-file="laptop"></div>
         
@@ -38,11 +53,10 @@
 <script>
 import RedBall from '@/components/RedBall'
 import lottie from 'lottie-web'
-import {onMounted, ref, watch, watchEffect} from 'vue'
+import {onMounted, ref, watch, watchEffect,computed} from 'vue'
 import {projectAuth} from '@/firebase/config'
-import getUser from '@/composable/getUser'
 import useLogout from '@/composable/useLogout'
-import {useRouter} from 'vue-router'
+import {useRouter,useRoute} from 'vue-router'
 import { useStore } from 'vuex'
 import _ from 'lodash'
 
@@ -55,9 +69,24 @@ export default {
     //Chuyển style cho red-ball bằng cách 
     //click vào các router-link thì trigger đổi số mode truyền vào cho <RedBall/>
         const redBallMode = ref(1);
-        const changeBallMode = (num) => {
-            redBallMode.value = num
-        }
+        const route = useRoute();
+        watch(route,(to,from)=>{
+            console.log("router: ....", to.name)
+            switch(to.name){
+                case 'DashBoard','LessonUser':{
+                    redBallMode.value = 1;
+                    break;
+                }
+                case 'Slide','Laboratory':{
+                    redBallMode.value = 2;
+                    break;
+                }
+                case 'ResourceUser','Folders':{
+                    redBallMode.value = 3;
+                    break;
+                }
+            }
+        })
 
     //SETUP lottieJs cho bunny
         onMounted(()=>{
@@ -71,39 +100,27 @@ export default {
 
         })
 
+        
+
         // logout and listen to change to push to login
 
         const {logout, error} = useLogout()
-        const {user,isAdmin} = getUser();
         const store = useStore();
-        
-        // nơi set admin mỗi lần user có sự thay đổi là đây
-        watchEffect(()=>{
-            // cập nhật user + admin tại nav vì ở đây mới import đc vuex
-            store.commit('user/changeUser',user.value);
-            store.commit('user/changeAdmin',isAdmin.value);
-            
-        })
 
+        const userData = computed(()=> store.getters['user/getUserData']);
+        const isAdmin = computed(()=> store.getters['user/getIsAdmin']);
+        
+        //load router tỚi slide
 
         const router = useRouter();
         const logingOut = async()=>{
            await logout();
             if(!error.value){
-                console.log("logout succeed")
+                store.dispatch['user/resetUser'];
             }
         }
 
-        // watchEffect(()=> {
-        //     console.log("nav has run")
-        //     if(!user.value){
-        //         router.push({name: 'Welcome'});
-        //     }
-        // })
-
-
-
-        return {redBallMode,changeBallMode,logingOut}
+        return {redBallMode,logingOut,isAdmin,userData}
     }
 }
 </script>
@@ -121,6 +138,7 @@ export default {
     z-index: 0;
 
 }
+
 .logo-container{
     position: absolute;
     top: 2rem;
@@ -143,13 +161,50 @@ export default {
         
     }
 }
+
+//user-info
+.user{
+    &-info{
+        width: 100%;
+        display: flex;
+        padding: 1rem 1rem 1rem 1rem;
+        background-color: white;
+        border-radius: 1rem;
+        @include card-shadow
+    }
+    &-ava{
+        position:relative;
+        overflow: hidden;
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 50%;
+        margin-right:1rem ;
+    }
+    &-img{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%,-50%);
+        width: 100%;
+    }
+    &-title{ 
+    }
+    &-nickname{
+        font-family: "Averta Bold";
+        font-size: 1.5rem;
+    }
+    &-content{
+        color: $color-gray-light-1;
+    }
+}
+
 .main-container{
     display: flex;
     justify-content: space-around;
     flex-direction: column;
     align-items: center;
     background-color: white;
-    padding: 2rem; 
+    padding: 0rem 2rem 2rem 2rem; 
     height: 87%;
     width: 100%;
     border-radius: 2rem 2rem 0 0 ;
@@ -164,6 +219,7 @@ export default {
     flex-direction: column;
     align-items: left;
     font-size: 1.3rem;
+    transform: translateY(-25%);
     // font-family: "Averta Bold";
     li{
         padding: 0.5rem 0; 

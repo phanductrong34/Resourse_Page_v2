@@ -63,12 +63,10 @@
 <script>
     import getCollectionFilter from '@/composable/getCollectionFilter'
     import {ref, onMounted, computed, watch, watchEffect} from 'vue'
-    import Loading from '@/components/Loading'
     import _ from 'lodash'
     export default {
         props: ['id'],
         components:{
-            Loading
         },
         setup(props) {
             const loadCollapsible = ()=>{

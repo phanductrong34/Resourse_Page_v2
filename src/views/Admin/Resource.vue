@@ -19,7 +19,6 @@
 </template>
 
 <script>
-import Loading from '@/components/Loading.vue'
 import getCollectionRT from '@/composable/getCollectionRT'
 import {ref, onMounted,watch} from 'vue'
 import {useRouter} from 'vue-router'
@@ -27,7 +26,6 @@ import lottie from 'lottie-web'
 
 export default {
     components: {
-        Loading
     },
     setup() {
 

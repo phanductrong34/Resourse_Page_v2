@@ -38,12 +38,11 @@ import getCollectionRT from '@/composable/getCollectionRT'
 import removeDoc from '@/composable/removeDoc'
 import removeUser from '@/composable/removeUser'
 import useLogout from "@/composable/useLogout"
-import Loading from '@/components/Loading.vue'
 import {projectAuth,projectFunctions} from '@/firebase/config'
 import {useStore} from 'vuex'
 export default {
     components: {
-        TeacherList,Loading
+        TeacherList
     },
     //fetch all admin
     setup() {
@@ -68,8 +67,7 @@ export default {
         const {logout, error: errLogout} = useLogout();
         const isAdmin = computed(()=> store.getters['user/getIsAdmin']);
         const currentUserID = computed(()=> store.getters['user/getCurrentUser'].uid);
-        console.log("🚀 ~ file: Teachers.vue ~ line 70 ~ currentUserID", currentUserID.value)
-        
+
         const updateTeacher = (adminID)=>{   //adminID là id của thẻ teacher truyền lên
             router.push({name: 'UpdateTeacher',params : {id:adminID}});
 
