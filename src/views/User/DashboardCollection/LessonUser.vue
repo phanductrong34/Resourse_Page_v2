@@ -1,14 +1,25 @@
 <template>
     <div class="lesson-user">
-        <LessonNav @activateTab="activeTab = $event" :activeTab="activeTab"/>
-        <LessonDetail v-if="activeTab == 'detail'" :lesson="lesson"/>
-        <LessonAssignment v-if="activeTab == 'assignment'" :lesson="lesson"/>
-        <LessonResource v-if="activeTab == 'resource'" :lesson="lesson"/>
+        <LessonNav 
+            :hasWork="hasWork" 
+            @activateTab="activeTab = $event" 
+            :activeTab="activeTab"/>
+        <LessonDetail 
+            v-if="activeTab == 'detail'" 
+            :lesson="lesson"/>
+        <LessonAssignment 
+            :hasWork="hasWork" 
+            v-if="activeTab == 'assignment'" 
+            :lesson="lesson" :currentWork="currentWork" 
+            @toggleHasWork="hasWork = $event"/>
+        <LessonResource 
+            v-if="activeTab == 'resource'" 
+            :lesson="lesson"/>
     </div>
 </template>
 
 <script>
-    import {ref,computed} from 'vue'
+    import {ref,computed,watchEffect} from 'vue'
     import {useStore} from 'vuex'
     import LessonNav from '@/views/User/DashboardCollection/LessonNav.vue'
     import LessonDetail from '@/views/User/DashboardCollection/LessonDetail.vue'
@@ -27,6 +38,22 @@
                 return list.value.find(lesson => lesson.number == props.number);
             })
 
+            //biến điều khiển trạng thái đã nộp bài và chưa nộp
+            const hasWork = ref(false);
+            //watch lesson change to load again
+            const currentWork = ref(null);
+
+            watchEffect(()=> {
+                const work = store.getters['works/getWork'](props.number); //work nhận null hoặc obj
+                if(work){
+                    hasWork.value = true
+                }else{
+                    hasWork.value = false;
+                }
+                currentWork.value = work;
+            });
+
+
             onBeforeRouteLeave((to, from, next) => {
                 if (to.name == 'Dashboard') {
                     next(false)
@@ -34,7 +61,7 @@
                     next();
                 }
             })
-            return {activeTab, lesson};
+            return {activeTab, lesson,hasWork,currentWork};
         }
         
     }

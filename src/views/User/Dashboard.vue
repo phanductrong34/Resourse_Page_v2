@@ -105,7 +105,6 @@ import _ from 'lodash'
             const changeLesson = (mode)=> {
                 const max = lessonUnlock.value.length;
                 const current = Number(route.params.number);
-                console.log("number", current,max);
                 if(mode == 'prev' && current > 1){
                     router.push({name:"LessonUser",params:{number: current - 1}});
                 }else if(mode == 'next' && current < max){
@@ -127,21 +126,22 @@ import _ from 'lodash'
 }
 .left-section{
     width: 35%;
+    height: 100vh;
     display: flex;
     align-items: center;
     flex-direction: column;
     overflow-y: auto;
         &::-webkit-scrollbar-track{
             border-radius: 10px;
-            background-color: #F5F5F5;
+            background-color: #fdfbfb00;
         }
         &::-webkit-scrollbar{
             width: 12px;
-            background-color: #F5F5F5;
+            background-color: #fffdfd00;
         }
         &::-webkit-scrollbar-thumb{
             border-radius: 10px;
-            background-color: $color-gray-light-2;
+            background-color: #ffffff00;
         }
 }
 .right-section{

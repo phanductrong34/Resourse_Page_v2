@@ -1,7 +1,9 @@
 import { createStore } from 'vuex'
-import {projectFirestore} from '@/firebase/config'
+import {projectFirestore,timestamp} from '@/firebase/config'
 import getDoc from '@/composable/getDoc'
 import getCollectionFilter from '@/composable/getCollectionFilter'
+import useCollection from '@/composable/useCollection'
+import updateDoc from '@/composable/updateDoc'
 import _ from 'lodash'
 
 //hàm rải data của doc từ onSnapshot và thêm trường id nữa
@@ -65,7 +67,6 @@ const moduleUser = {
       },
       resetUser({commit}){
         commit('resetUser');
-        console.log("reset user from vuex store")
       }
     },
     modules: {
@@ -151,7 +152,6 @@ const moduleLesson = {
     setListenerLessons({rootGetters,state}){
       // khởi tạo listener chạy mỗi khi thay đổi data base
       const courseID = rootGetters['user/getCourseID']
-      console.log("🚀 ~ file: index.js ~ line 133 ~ courseID", courseID)
       
       projectFirestore.collection("lessons").where("courseID", "==", courseID)
       .onSnapshot((snapshot) => {
@@ -208,7 +208,6 @@ const moduleCourse = {
   actions: {
     async firstLoadCourse({rootGetters,commit}){
       const courseID = rootGetters['user/getCourseID'];
-      console.log("🚀 ~ file: index.js ~ line 211 ~ courseID", courseID)
       const {data , error, load} = getDoc("courses")
       if(courseID){
         await load(courseID);
@@ -254,7 +253,94 @@ const moduleClass = {
   }
 }
 
+const moduleWorks = {
+  namespaced: true,
+  state:{
+    workList: []
+  },
+  getters:{
+    getWork:(state)=>(number)=>{
+      if(state.workList.length == 0) return null;
+      else{
+        const obj = state.workList.find((work)=> work.lessonNumber == number);
+        if(obj) return obj;
+        else return null;
+      }
+    },
+    getWorkList(state){
+      return state.workList;
+    },
+    getWorkCount(state){
+      return state.list.length;
+    },
+  },
+  mutations: {
+    pushWork(state,work){
+      state.workList.push(work);
+    },
+    setWorks(state,works){
+      state.workList = works
+    },
+    updateWork(state,newWork){
+      const index = state.workList.findIndex((work)=>work.id == newWork.id);
+      if(index > -1){
+        state.workList[index] = newWork;
+      }
+    },
+    resetWorks(state){
+      state.workList = [];
+    }
+  },
+  actions: {
+    async firstLoadWorks({rootGetters,commit}){
+      commit('resetWorks');
+      const studentID = rootGetters['user/getCurrentUser'].uid;
+      const {dataArray : works, error, load: loadWorks} = getCollectionFilter();
+      await loadWorks("works","studentID",studentID);
+      
+      if(works.value.length){
+        commit('setWorks',works.value);
+      }
+    },
+    resetWorks({commit}){
+      commit('resetWorks');
+    },
+    //payload = {inputURL, number}
+    async uploadWork({commit,rootGetters}, {inputURL, number}){
+      const newWork = {
+        lessonNumber: number,
+        workURL: inputURL,
+        studentID: rootGetters['user/getCurrentUser'].uid,
+        classID: rootGetters['user/getClassID'],
+        courseID: rootGetters['user/getCourseID'],
+        createdAt: timestamp(),
+        score: 0,
+      }
+      const {error, addDoc} = useCollection("works");
+      const res = await addDoc(newWork);
+      //Đợi để lấy ID sau đó
+      commit('pushWork',{...newWork, id: res.id});
+    },
 
+    //id ở đây là id của work đang hiện tại có
+    async updateWork({rootGetters,commit,getters},{id,inputURL,number}){
+      const updatedWork = {
+        lessonNumber: number,
+        workURL: inputURL,
+        studentID: rootGetters['user/getCurrentUser'].uid,
+        classID: rootGetters['user/getClassID'],
+        courseID: rootGetters['user/getCourseID'],
+        createdAt: timestamp(),
+        score: 0,
+      }
+      const {error, update} = updateDoc("works");
+      await update(id,updatedWork);
+      commit['updateWork',{...updatedWork, id: id}]
+    }
+  }
+
+
+}
 export const store =  createStore({
   state: {
   },
@@ -267,5 +353,6 @@ export const store =  createStore({
     lessons: moduleLesson,
     course: moduleCourse,
     class: moduleClass,
+    works: moduleWorks,
   }
 })

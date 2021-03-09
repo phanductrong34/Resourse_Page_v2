@@ -3,14 +3,17 @@
         <div :class="[{active: activeTab == 'detail'},'lesson-tab']" @click="$emit('activateTab','detail')">Detail</div>
         <div :class="[{active: activeTab == 'assignment'},'lesson-tab']" @click="$emit('activateTab','assignment')">Assignment</div>
         <div :class="[{active: activeTab == 'resource'},'lesson-tab']" @click="$emit('activateTab','resource')">Resource</div>
-        <div :class="[{done : true},'homework-state']">Đã nộp bài</div>
+        <div :class="[{done : hasWork},'homework-state']">
+            <span v-if="hasWork">Completed</span> 
+            <span v-else>Incompleted</span>
+        </div>
     </div>
 </template>
 
 <script>
     import {ref} from 'vue'
     export default {
-        props:['activeTab'],
+        props:['activeTab','hasWork'],
         setup(props) {
             
         }
@@ -63,10 +66,12 @@
             padding: 0.2rem 1rem 0.2rem 1rem;
             border-radius: 0.4rem;
             cursor: pointer;
+            color: white;
+            background-color: $color-primary;
+            @include transition;
 
         &.done{
             background-color: $color-green;
-            color: white;
         }
     }
 </style>

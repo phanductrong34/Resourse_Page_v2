@@ -71,7 +71,6 @@ export default {
         const redBallMode = ref(1);
         const route = useRoute();
         watch(route,(to,from)=>{
-            console.log("router: ....", to.name)
             switch(to.name){
                 case 'DashBoard','LessonUser':{
                     redBallMode.value = 1;
@@ -117,6 +116,7 @@ export default {
            await logout();
             if(!error.value){
                 store.dispatch['user/resetUser'];
+                store.dispatch['works/resetWorks']
             }
         }
 

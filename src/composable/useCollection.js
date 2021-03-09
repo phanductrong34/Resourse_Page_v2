@@ -6,6 +6,7 @@ const useCollection = (collection)=> {
     const addDoc = async (doc)=> {
         try{
             const res = await projectFirestore.collection(collection).add(doc);
+            return res
         }catch(err){
             error.value = err.message;
             console.log("Add doc has an error")

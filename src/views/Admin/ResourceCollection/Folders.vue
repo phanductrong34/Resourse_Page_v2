@@ -30,6 +30,7 @@
     import getDoc from '@/composable/getDoc'
     import { computed, ref, watch, watchEffect } from 'vue';
     import {useStore} from 'vuex'
+    import { onBeforeRouteLeave } from 'vue-router'
     export default {
         props: ['name'],
         components: {},
@@ -61,6 +62,15 @@
             const computedName = (name) => {
                 return name.toLowerCase() + '.'
             }
+
+//////////// PREVENT BACK TO RESOURCE
+            onBeforeRouteLeave((to, from, next) => {
+                if (to.name == 'ResourceUser' || to.name == "Resource") {
+                    next(false)
+                } else {
+                    next();
+                }
+            })
 
             return {files,error,admin,
                     computedName, isLoading,noData}

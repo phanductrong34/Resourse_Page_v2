@@ -9,8 +9,17 @@
             </a>
             <form class="works-form" @submit.prevent="handleSubmit">
                 <input class="works-input" type="text" placeholder="Paste your Google Drive link here" v-model="link">
-                <button class="works-button">Submit</button>
+                <button v-if="hasWork"
+                        class="works-button"
+                        @click.prevent="updateWork">
+                            Update
+                </button>
+                <button v-else class="works-button">Submit</button>
+                <a v-if="hasWork" class="works-visit" :href="driveURL" target="_blank">
+                    <i class="material-icons">video_library</i>
+                </a>
             </form>
+            <div class="error-message center works-error" v-if="error"> {{error}}</div>
             <img class="works-bg" src="@/assets/png/assigment.svg" alt="">
         </div>
         <div class="comments-container">
@@ -20,17 +29,62 @@
 </template>
 
 <script>
-    import {ref,computed} from 'vue'
+    import {ref,computed,watchEffect} from 'vue'
+    import {useStore} from 'vuex'
     export default {
-        props:['lesson'],
-        setup(props) {
+        props:['lesson','hasWork','currentWork'],
+        setup(props,context) {
             const link = ref("");
+            const error = ref(null);
+            const store = useStore();
+
             const homeworkURL = computed(()=> props.lesson.homeworkURL);
-            const handleSubmit = ()=>{
-                link.value = ""
-                console.log(link.value);
+            const driveURL = ref(null);
+            watchEffect(()=>{
+                if(props.currentWork){
+                    driveURL.value = props.currentWork.workURL;
+                }else{
+                    driveURL.value = null
+                }
+            })
+
+            //add new work
+            const handleSubmit = async()=>{
+                error.value = null;
+                if(link.value.length){
+                    await store.dispatch('works/uploadWork',{
+                        inputURL: link.value,
+                        number: props.lesson.number,
+                    })
+                    link.value = ""
+                    context.emit('toggleHasWork',true);
+                    alert(`Submit homework for lesson ${props.lesson.number} succeed`);
+                }else{
+                    error.value = "You must fill your link to submit"
+                }
             }
-            return{handleSubmit,link,homeworkURL}
+
+            //update work
+            const updateWork = async()=>{
+                error.value = null;
+                if(link.value.length){
+                    await store.dispatch('works/updateWork',{
+                        id: props.currentWork.id,
+                        inputURL: link.value,
+                        number:props.lesson.number
+                    })
+                    driveURL.value= link.value;
+                    link.value ="";
+                    context.emit('toggleHasWork',true);
+                    alert(`Update homework for lesson ${props.lesson.number} succeed`);
+                }else{
+                    error.value = "You must fill your link to submit"
+                }
+            }
+
+           
+            return{handleSubmit,link,homeworkURL,error,
+                   driveURL,updateWork }
         }
     }
 </script>
@@ -123,6 +177,24 @@
             position: relative !important;
             z-index: 1 !important;
             transition: all 0.6s cubic-bezier(0,.81,.45,.99) !important;
+        }
+        &-visit{
+            height: 100%;
+            width: 4rem;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.2rem;
+            margin-left: -0.7rem;
+            border-radius: 0.4rem;
+            background-color:$color-gray-dark;
+        }
+        &-error{
+            position: absolute;
+            width: 100%;
+            left: 0;
+            bottom: 53%;
         }
         &-bg{
             width: 100%;

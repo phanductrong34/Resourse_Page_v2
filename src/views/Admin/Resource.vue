@@ -73,15 +73,15 @@ export default {
         margin-top: 2rem;
         &::-webkit-scrollbar-track{
             border-radius: 10px;
-            background-color: #F5F5F5;
+            background-color: #ffffff00;
         }
         &::-webkit-scrollbar{
             width: 12px;
-            background-color: #F5F5F5;
+            background-color:#ffffff00;
         }
         &::-webkit-scrollbar-thumb{
             border-radius: 10px;
-            background-color: $color-gray-light-2;
+            background-color: #ffffff00;
         }
     }
 

@@ -9,6 +9,7 @@
         <span :class="['ball1', modeComputed]"></span>
         <span :class="['ball2', modeComputed]"></span>
         <span :class="['ball3', modeComputed]"></span>
+        <span :class="['ball4', modeComputed]"></span>
     </div>
 </template>
 
@@ -25,14 +26,6 @@ export default {
 
         const route = useRoute();
         
-        const modeCompute = computed(()=>{
-            const change = route
-            const routeName = route.name;
-            const mode = 1;
-            console.log("🚀 ~ file: RedBall.vue ~ line 31 ~ routeName", routeName)
-            return "mode" + mode;
-        })
-
         return { modeComputed };
     },
 };
@@ -52,70 +45,106 @@ export default {
     position: absolute;
 
     background: $color-primary;
-    transition: 0.3s ease-in-out;
+    transition: 0.6s cubic-bezier(.73,-0.44,.24,1.52);
+    // transition: 0.1s ease;
 }
 //MODE 1
 .ball1.mode1 {
-    top: -230px;
-    right: -250px;
-    width: 50rem;
-    height: 50rem;
-}
-.ball2.mode1 {
-    bottom: -150px;
-    right: 200px;
-    width: 22rem;
-    height: 22rem;
-}
-
-
-//MODE 2
-.ball1.mode2 {
-    top: -100px;
-    right: -500px;
-    width: 30rem;
-    height: 30rem;
-}
-.ball2.mode2 {
-    bottom: -500px;
-    right: 100px;
-    width: 50rem;
-    height: 50rem;
-}
-
-//MODE 3
-.ball1.mode3 {
-    top: -100px;
-    right: -500px;
-    width: 30rem;
-    height: 30rem;
-}
-.ball2.mode3 {
-    bottom: -174px;
-    right: 100px;
-    width: 20rem;
-    height: 20rem;
-}
-.ball3.mode3 {
-    bottom: -70%;
-    left: 5%;
-    width: 60%;
-    height: 120%;
-    transform: translate(-50%,-50%);
-}
-
-//MODE 4
-.ball1.mode4 {
-    top: -280px;
-    right: -180px;
-    width: 50rem;
-    height: 50rem;
-}
-.ball2.mode4 {
-    bottom: -121px;
-    right: 386px;
+    top: -12%;
+    right: 0%;
+    left: 6%;
+    bottom: 0%;
     width: 15rem;
     height: 15rem;
 }
+.ball2.mode1 {
+    right: 0%;
+    left: 37%;
+    bottom: -27%;
+    width: 30rem;
+    height: 30rem;
+}
+.ball3.mode1 {
+    top: 48%;
+    left: 169%;
+    right: 0%;
+    bottom: 0%;
+    width: 5rem;
+    height: 5rem;
+}
+.ball4.mode1 {
+    top: 8%;
+    left: 42%;
+    right: 0%;
+    bottom: 0%;
+    width: 0rem;
+    height: 0rem;
+}
+
+//MODE 2
+.ball1.mode2 {
+    top: -6%;
+    right: 0%;
+    left: -22%;
+    bottom: 0%;
+    width: 55rem;
+    height: 55rem;
+}
+.ball2.mode2 {
+    right: 20%;
+    left: 67%;
+    bottom: -25%;
+    width: 17rem;
+    height: 16rem;
+}
+.ball3.mode2 {
+    top: -6%;
+    left: 80%;
+    right: 0%;
+    bottom: 0%;
+    width: 55rem;
+    height: 55rem;
+}
+.ball4.mode2 {
+    top: 8%;
+    left: 42%;
+    right: 0%;
+    bottom: 0%;
+    width: 0rem;
+    height: 0rem;
+}
+//MODE 3
+.ball1.mode3 {
+    top: -6%;
+    right: 0%;
+    left: -18%;
+    bottom: 0%;
+    width: 55rem;
+    height: 55rem;
+}
+.ball2.mode3 {
+    right: 21%;
+    left: 74%;
+    bottom: -22%;
+    width: 22rem;
+    height: 22rem;
+}
+.ball3.mode3 {
+    top: -6%;
+    left: 80%;
+    right: 0%;
+    bottom: 0%;
+    width: 25rem;
+    height: 25rem;
+}
+.ball4.mode3 {
+    top: 1%;
+    left: 37%;
+    right: 0%;
+    bottom: 0%;
+    width: 9rem;
+    height: 9rem;
+}
+
 
 </style>
