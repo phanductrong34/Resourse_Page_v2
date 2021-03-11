@@ -280,9 +280,9 @@ const moduleWorks = {
     getWorkList(state){
       return state.workList;
     },
-    getWorkCount(state){
-      return state.list.length;
-    },
+    // getWorkCount(state){
+    //   return state.list.length;
+    // },
   },
   mutations: {
     pushWork(state,work){
