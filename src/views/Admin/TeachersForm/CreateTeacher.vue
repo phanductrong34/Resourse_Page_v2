@@ -131,7 +131,7 @@
                     await set(uid,admin);
                     // thêm claim cho admin
                     const resAdmin = await addAdminRole({email: admin.email})
-                    console.log("🚀 ~ file: CreateTeacher.vue ~ line 116 ~ resAdmin", resAdmin)
+                    //console.log("🚀 ~ file: CreateTeacher.vue ~ line 116 ~ resAdmin", resAdmin)
                     
                     if(!errSet.value){
                         clearField();

@@ -1,5 +1,5 @@
 <template>
-    <div class="lesson">
+    <div class="lesson overflowList">
         <div class="lesson-title">
             <h3 class="title center">Lessons from {{id}}</h3>
             <router-link :to="{name: 'CreateLesson', params:{id : id}}">
@@ -122,18 +122,6 @@
         display: flex;
         flex-direction: column;
         overflow-y:auto;
-        &::-webkit-scrollbar-track{
-            border-radius: 10px;
-            background-color: #F5F5F5;
-        }
-        &::-webkit-scrollbar{
-            width: 12px;
-            background-color: #F5F5F5;
-        }
-        &::-webkit-scrollbar-thumb{
-            border-radius: 10px;
-            background-color: $color-gray-light-2;
-        }
 
     }
     .lesson-title{

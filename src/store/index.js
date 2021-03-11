@@ -1,5 +1,5 @@
 import { createStore } from 'vuex'
-import {projectFirestore,timestamp} from '@/firebase/config'
+import {projectFirestore,timestamp,FieldValue} from '@/firebase/config'
 import getDoc from '@/composable/getDoc'
 import getCollectionFilter from '@/composable/getCollectionFilter'
 import useCollection from '@/composable/useCollection'
@@ -63,8 +63,18 @@ const moduleUser = {
         
         if(!error.value){
           state.userData = data.value;          
+          //console.log("🚀 ~ file: index.js ~ line 62 ~ USERdata", state.userData);
         }
       },
+      async updateNewUser({state,commit}){
+        state.userData.isNewUser = false;
+        const {error, update} = updateDoc("students");
+        await update(state.currentUser.uid,{
+          isNewUser: false
+        })
+        //console.log("update newUser to false")
+      },
+
       resetUser({commit}){
         commit('resetUser');
       }
@@ -146,7 +156,7 @@ const moduleLesson = {
         await loadClass(classID);
         if(activeClass.value.unlockLessons.length > 0){
           commit('setUnlockList', [...activeClass.value.unlockLessons])
-          console.log("set unlock ",[...activeClass.value.unlockLessons]);
+          //console.log("set unlock ",[...activeClass.value.unlockLessons]);
         }
     },
     setListenerLessons({rootGetters,state}){
@@ -310,16 +320,21 @@ const moduleWorks = {
       const newWork = {
         lessonNumber: number,
         workURL: inputURL,
+        studentNickname:rootGetters['user/getUserData'].nickname,
         studentID: rootGetters['user/getCurrentUser'].uid,
         classID: rootGetters['user/getClassID'],
         courseID: rootGetters['user/getCourseID'],
         createdAt: timestamp(),
         score: 0,
-      }
-      const {error, addDoc} = useCollection("works");
+      }    
+      const {error :err1, addDoc} = useCollection("works");
       const res = await addDoc(newWork);
       //Đợi để lấy ID sau đó
       commit('pushWork',{...newWork, id: res.id});
+      // thêm id này vào works curea học sinh
+      await projectFirestore.collection("students").doc(newWork.studentID).update({
+        works: FieldValue.arrayUnion(res.id)
+      })
     },
 
     //id ở đây là id của work đang hiện tại có
@@ -341,6 +356,68 @@ const moduleWorks = {
 
 
 }
+
+const moduleStudentWorks = {
+  namespaced: true,
+  state:{
+    studentList:[],
+    studentWorks:{
+      //"studentID":[work1, work2,work3]
+    },
+    allWorks:[]
+  },
+  getters:{
+  },
+  mutations:{
+    pushWorks(state,studentID,works){
+      state.studentWorks[studentID] = works;
+    }
+  },
+  actions:{
+    async getWorks({state},{studentID}){
+      const works = state.studentWorks[studentID]
+      if(!works){
+        //get từ firestore
+        const {dataArray , error, load} = getCollectionFilter();
+        await load("works","studentID",studentID);
+        if(dataArray.value.length){
+          state.studentWorks[studentID] = dataArray.value;
+          //console.log("🚀 ~ file: index.js ~ line 379 ~ dataArray.value", dataArray.value)
+          return dataArray.value;
+        }else return null; // fetch mà ko có work thì trả null
+      }else{
+        return works  // get mà có trong kho rồi thì không lấy nữa
+      }
+    },
+    async getAllWorks({state,rootGetters}){
+      if(!state.allWorks.length){
+        const classID = rootGetters['user/getClassID'];
+        const {dataArray , error, load} = getCollectionFilter(); 
+        await load("works","classID",classID);
+        if(dataArray.value.length){
+          state.allWorks = dataArray.value;
+          //console.log("🚀 ~ file: index.js ~ line 388 ~ state.allWorks", state.allWorks)
+          return dataArray.value
+        }else return null;
+      }else{
+        return state.allWorks;
+      }
+
+    },
+    async getStudentList({state,rootGetters}){
+      if(!state.studentList.length){
+        const classID = rootGetters['user/getClassID'];
+        const {dataArray , error, load} = getCollectionFilter();
+        await load("students","classID",classID);
+        if(dataArray.value.length){
+          state.studentList = dataArray.value;
+          //console.log("🚀 ~ file: index.js ~ line 403 ~ state.studentList", state.studentList)
+          return state.studentList;
+        }
+      }else return state.studentList
+    }
+  }
+}
 export const store =  createStore({
   state: {
   },
@@ -354,5 +431,6 @@ export const store =  createStore({
     course: moduleCourse,
     class: moduleClass,
     works: moduleWorks,
+    studentWorks: moduleStudentWorks,
   }
 })

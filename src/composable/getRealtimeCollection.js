@@ -14,7 +14,7 @@ const getRealtimeCollection = (collection,orderby,order) => {
                     return {...doc.data(), id: doc.id};
                 })
             })
-            console.log("Get collection:",collection,dataArray.value)
+            //console.log("Get collection:",collection,dataArray.value)
         } catch (err) {
             error.value = err.message;
             console.log('Get error log: '+ err.value);   

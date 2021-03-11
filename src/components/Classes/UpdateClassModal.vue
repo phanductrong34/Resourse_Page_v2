@@ -79,7 +79,8 @@ export default {
     
         const {error : errRemoveClass, remove: removeClass} = removeDoc("classes");
         const {error : errRemoveStudent, remove: removeStudent} = removeDoc("students");
-        
+        const {error : errRemoveFilter, remove: removeDocs} = removeDocsFilter();
+
         const {error : errUpdate, update:updateClass} = updateDoc("classes")
 
 
@@ -136,8 +137,11 @@ export default {
                     //xóa hs khỏi auth đã
                     deleteUser({uid: student.id});
                     removeStudent(student.id)
-                    console.log(`delete user ${student.nickname}`);
+                    //console.log(`delete user ${student.nickname}`);
                 })
+                //xóa toàn bộ works có classiD
+                removeDocs("works","classID",props.classID);
+                //xóa lớp
                 await removeClass(props.classID);
                 if(!errRemoveClass.value){
                     

@@ -108,14 +108,17 @@
 
             const deleteCourse = async()=> {
                 error.value = null;
+                
                 // xóa sinh viên có courseID trong cả auth lẫn firestore
                 await loadStudent("students","courseID",props.id);
                 filterStudents.value.forEach((student)=>{
                     deleteUser({uid: student.id});
                     removeStudent(student.id)
-                    console.log(`delete user ${student.nickname}`);
+                    //console.log(`delete user ${student.nickname}`);
                 })
 
+                //xóa bài tập thuộc về courseID có trong firestore
+                removeDocs("works","courseID",props.id);
                 // xóa class có courseID
                 removeDocs("classes","courseID",props.id);
                 //Xóa lessons liên quan

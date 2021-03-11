@@ -21,6 +21,21 @@ export default {
 <style lang="scss">
 body{
   overflow: hidden;
+
+}
+.overflowList{
+    &::-webkit-scrollbar-track{
+        border-radius: 10px;
+        background-color: #ffffff00;
+    }
+    &::-webkit-scrollbar{
+        width: 12px;
+        background-color:#ffffff00;
+    }
+    &::-webkit-scrollbar-thumb{
+        border-radius: 10px;
+        background-color: #ffffff00;
+    }
 }
 #app{
   font-family: 'Averta Semi Bold';
@@ -33,6 +48,7 @@ body{
   overflow: hidden;
 
 }
+
 
 .error-message{
   color: $color-primary;

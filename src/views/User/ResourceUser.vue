@@ -2,7 +2,7 @@
     <div class="resource page">
         <div class="folder-container overflowList" v-if="folders">
             <div v-for="folder in folders" :key="folder.id" class="folder-card">
-                <router-link :to="{name: 'Folders',params: {name:folder.name}}">
+                <router-link :to="{name: 'FoldersUser',params: {name:folder.name}}">
                     <img class="folder-img" src="../../assets/png/folder.png">
                     <p class="folder-name">{{folder.name}}</p>
                 </router-link>
@@ -39,7 +39,7 @@ export default {
         watch(folders, ()=>{
             if(folders.value != null){
                 const firstFolder = ((folders.value)[0]).name;
-                router.push({name: 'Folders', params: {name: firstFolder}})
+                router.push({name: 'FoldersUser', params: {name: firstFolder}})
             }
         })
         return {folders,errFolders}

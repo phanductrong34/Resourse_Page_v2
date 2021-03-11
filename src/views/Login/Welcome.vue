@@ -21,6 +21,9 @@
                         <div class="row" v-if="error">
                             <div class="center error-message">{{error}}</div>
                         </div>
+                        <div class="row" v-if="errLogin">
+                            <div class="center error-message">{{errLogin}}</div>
+                        </div>
                         <div class="row center">
                             <h6 class="no-account">No account yet? <a href="https://www.facebook.com/profile.php?id=100007780805626" target="_blank">Contact me</a> to join a class</h6>
                         </div>
@@ -41,6 +44,7 @@
     import {ref,onMounted} from 'vue'
     import {useRouter} from 'vue-router'
     import useLogin from '@/composable/useLogin'
+    import useLogout from '@/composable/useLogout'
     import {useStore} from 'vuex'
     import getUser from '@/composable/getUser'
     export default {
@@ -68,29 +72,49 @@
             
             const email = ref("");
             const password = ref("");
-            const {user,isAdmin} = getUser();  // dặt sẵn biến và khởi tạo 1 hàm onAuth ở đây đã
+            const {user,isAdmin} = getUser();  // dặt sẵn biến và khởi tạo 1 hàm onAuth ở đây đã để login hay logout gì nó cũng sẽ load lại user và check admin
 
             const router = useRouter();
-            const {login, error} = useLogin();
+            const error =ref(null);
+            const {login, error : errLogin} = useLogin();
+            const {logout, error :errLogout} = useLogout();
             const store = useStore();
             const handleSubmit = async () => {
                 store.dispatch('user/resetUser');
+                error.value = null;
+                errLogin.value = null; 
 
                 const res = await login(email.value,password.value);  //khi login đổi user thì onAuthStateChange ở main ko chạy, nhưng chạy trong getUser
-                await store.dispatch('user/updateUserData',{user: user.value, isAdmin : isAdmin.value});
-                console.log("dispatch success", user.value, isAdmin.value);
-                //login thành công và ko ném ra bất cứ lỗi nào
-                if(!error.value){
-                    // check admin để đẩy
-                    if(isAdmin.value){
-                        router.push({name: 'ClassManage'});
-                    }else{
-                        router.push({name:'User'});
+                if(!errLogin.value){
+
+                    //check emailVerified ở đây
+                    if(!res.user.emailVerified){
+                        res.user.sendEmailVerification().then(()=>{
+                            error.value = "Please verified your email and login again"
+                            logout();
+                        })
+                    }else{ // nếu đã verified
+                        await store.dispatch('user/updateUserData',{user: user.value, isAdmin : isAdmin.value});
+                        //console.log("dispatch success", user.value, isAdmin.value);
+                        //login thành công và ko ném ra bất cứ lỗi nào
+                        if(!error.value){
+                            if(isAdmin.value){
+                                router.push({name: 'ClassManage'});
+                            }else if(store.getters['user/getUserData'].isNewUser){
+                                await store.dispatch('user/updateNewUser');
+                                router.push({name:'NewUser'});
+                            }else{
+                                router.push({name:'User'});
+                            }
+                        }
+    
                     }
+
                 }
 
+
             }
-            return {handleSubmit,email,password,error}
+            return {handleSubmit,email,password,error,errLogin}
         }
         
     }

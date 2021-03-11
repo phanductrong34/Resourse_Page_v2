@@ -1,5 +1,5 @@
 <template>
-    <div class="course-nav">
+    <div class="course-nav overflowList">
         <div class="course-title">
             <h3 class="title center">Courses</h3>
             <router-link :to="{name: 'CreateCourse'}">
@@ -68,18 +68,6 @@
         flex-direction: column;
         justify-content: space-between;
         overflow-y: auto;
-        &::-webkit-scrollbar-track{
-            border-radius: 10px;
-            background-color: #F5F5F5;
-        }
-        &::-webkit-scrollbar{
-            width: 12px;
-            background-color: #F5F5F5;
-        }
-        &::-webkit-scrollbar-thumb{
-            border-radius: 10px;
-            background-color: $color-gray-light-2;
-        }
     }
     .course-title{
         display: flex;
@@ -159,7 +147,7 @@
         &-bg{
             width: 100%;
             z-index: -1;
-            min-width: 258px;
+            min-width: 230px;
             min-height: 155px;
             display: flex;
             justify-content: center;

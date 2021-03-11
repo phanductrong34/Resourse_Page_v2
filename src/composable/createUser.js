@@ -4,7 +4,7 @@ import {ref} from 'vue'
 const error = ref(null)
 
 const create = async(email,password,displayName) => {
-    console.log("🚀 ~ file: createUser.js ~ line 7 ~ password", password)
+    //console.log("🚀 ~ file: createUser.js ~ line 7 ~ password", password)
     
     try {
         const res = await projectAuth.createUserWithEmailAndPassword(email,password);
@@ -12,7 +12,7 @@ const create = async(email,password,displayName) => {
             throw new Error('Couldn not complete the createUser');
         }
         await res.user.updateProfile({displayName});
-        console.log(res.user);
+        //console.log(res.user);
         //sau khi createUser thành công và đổi tên thì phải clear field có thể vẫn còn ở lần trước
         error.value = null;
         return res;

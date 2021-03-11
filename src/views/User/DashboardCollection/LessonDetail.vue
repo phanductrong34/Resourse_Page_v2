@@ -2,7 +2,7 @@
     <div class="lesson-detail">
         <div class="lesson-card">
             <div class="lesson-video">
-                <img class="lesson-recordThumb" src="@/assets/png/record-thumb-1.png" alt="">
+                <img class="lesson-recordThumb" :src="'/assets/png/wallpaper/wallpaper'+ lesson.number +'.png'" alt="">
                 <div class="lesson-noti">
                     <p>{{noti}}</p>
                 </div>

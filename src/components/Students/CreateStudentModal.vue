@@ -154,10 +154,11 @@ export default {
                             works: [],
                             phone: "",
                             avaRef:`ava/ava-(${Math.ceil(Math.random()*50)}).svg`,
-                            createdAt: timestamp()
+                            createdAt: timestamp(),
+                            isNewUser: true,
                         };
                 });
-                console.log(newStudentsArray);
+                //console.log(newStudentsArray);
                 newStudentsArray.forEach(async(newStudent)=>{
                     // Tạo ra trên Auth bằng admin để nó trả lại uid
                     const resCreate = await createUser({email: newStudent.email, password: defaultPass.value})

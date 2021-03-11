@@ -145,6 +145,165 @@ export default {
     width: 9rem;
     height: 9rem;
 }
+//MODE 4
+.ball1.mode4 {
+    top: -12%;
+    right: 0%;
+    left: 6%;
+    bottom: 0%;
+    width: 15rem;
+    height: 15rem;
+}
+.ball2.mode4 {
+    right: 0%;
+    left: 72%;
+    bottom: -22%;
+    width: 20rem;
+    height: 20rem;
+}
+.ball3.mode4 {
+    top: -24%;
+    left: 73%;
+    right: 0%;
+    bottom: 0%;
+    width: 47rem;
+    height: 47rem;
+}
+.ball4.mode4 {
+    top: 1%;
+    left: 37%;
+    right: 0%;
+    bottom: 0%;
+    width: 0rem;
+    height: 0rem;
+}
 
-
+//////////////////////////////////////////////////////MODE 5
+.ball1.mode5 {
+    top: -12%;
+    right: 0%;
+    left: -4%;
+    bottom: 0%;
+    width: 15rem;
+    height: 15rem;
+}
+.ball2.mode5 {
+    right: 0%;
+    left: 68%;
+    bottom: -19%;
+    width: 21rem;
+    height: 21rem;
+}
+.ball3.mode5 {
+    top: -28%;
+    left: 67%;
+    right: 0%;
+    bottom: 0%;
+    width: 41rem;
+    height: 41rem;
+}
+.ball4.mode5 {
+    top: 8%;
+    left: 42%;
+    right: 0%;
+    bottom: 0%;
+    width: 0rem;
+    height: 0rem;
+}
+//////////////////////////////////////////////////////MODE 6
+.ball1.mode6 {
+    top: -12%;
+    right: 0%;
+    left: -4%;
+    bottom: 0%;
+    width: 15rem;
+    height: 15rem;
+}
+.ball2.mode6 {
+    right: 0%;
+    left: 92%;
+    bottom: -17%;
+    width: 13rem;
+    height: 13rem;
+}
+.ball3.mode6 {
+    top: -20%;
+    left: 83%;
+    right: 0%;
+    bottom: 0%;
+    width: 31rem;
+    height: 31rem;
+}
+.ball4.mode6 {
+    top: 8%;
+    left: 42%;
+    right: 0%;
+    bottom: 0%;
+    width: 0rem;
+    height: 0rem;
+}
+//////////////////////////////////////////////////////MODE 7
+.ball1.mode7 {
+    top: -12%;
+    right: 0%;
+    left: -4%;
+    bottom: 0%;
+    width: 15rem;
+    height: 15rem;
+}
+.ball2.mode7 {
+    right: 0%;
+    left: 92%;
+    bottom: -17%;
+    width: 13rem;
+    height: 13rem;
+}
+.ball3.mode7 {
+    top: -20%;
+    left: 83%;
+    right: 0%;
+    bottom: 0%;
+    width: 31rem;
+    height: 31rem;
+}
+.ball4.mode7 {
+    top: 8%;
+    left: 42%;
+    right: 0%;
+    bottom: 0%;
+    width: 0rem;
+    height: 0rem;
+}
+//////////////////////////////////////////////////////MODE 0
+.ball1.mode0 {
+    top: -12%;
+    right: 0%;
+    left: -4%;
+    bottom: 0%;
+    width: 15rem;
+    height: 15rem;
+}
+.ball2.mode0 {
+    right: 0%;
+    left: 112%;
+    bottom: -27%;
+    width: 3rem;
+    height: 3rem;
+}
+.ball3.mode0 {
+    top: -80%;
+    left: 153%;
+    right: 0%;
+    bottom: 0%;
+    width: 1rem;
+    height: 1rem;
+}
+.ball4.mode0 {
+    top: 8%;
+    left: 42%;
+    right: 0%;
+    bottom: 0%;
+    width: 0rem;
+    height: 0rem;
+}
 </style>

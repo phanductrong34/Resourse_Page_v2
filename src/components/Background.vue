@@ -1,7 +1,7 @@
 <template>
   <teleport to="#back">
     <div class="background">
-        <img src="@/assets/png/dashboard.png" alt="">
+        <img src="" alt="">
     </div>
   </teleport>
 </template>
@@ -12,6 +12,7 @@ export default {};
 
 <style lang="scss" scoped>
 .background{
+    display: none;
     width: 100%;
     height: 100%;
     opacity: 0;

@@ -3,9 +3,6 @@
         <Loading v-if="isLoading"/>
         <div class="files-list" v-else>
             <div v-for="file in files" :key="file.id" class="file-card">
-                <router-link :to="{name: 'UpdateFile',params: {id: file.id}}" v-if="admin">
-                    <span class="file-update"><i class="material-icons">edit</i></span>
-                </router-link>
 
                 <a :href="file.link" target="_blank">
                     <img class="file-img" :src="'../../../assets/png/file-'+file.from+'-'+file.type+'.png'">
@@ -16,11 +13,6 @@
         </div>
         <NoData :data="'files'" v-if="noData"/>
 
-        <div class="button-create" v-if="admin">
-            <button class="btn-create btn waves-effect waves-light red darken-4">
-                <router-link :to="{name: 'CreateFile', params: {folder:name}}"><i class="material-icons left">add</i>Create File</router-link>
-            </button>
-        </div> 
     </div>
 </template>
 
@@ -35,9 +27,6 @@
         props: ['name'],
         components: {},
         setup(props) {
-            //////////check admin, nếu uid ko có trong firestore thì admin giữ nguyên null
-            const store = useStore()
-            const admin = computed(()=> store.getters['user/getIsAdmin']);
 
 
             //chỉ lấy những resource có folder trùng với props.name truyền vào thôi
@@ -65,14 +54,14 @@
 
 //////////// PREVENT BACK TO RESOURCE
             onBeforeRouteLeave((to, from, next) => {
-                if (to.name == "Resource") {
+                if (to.name == 'ResourceUser') {
                     next(false)
                 } else {
                     next();
                 }
             })
 
-            return {files,error,admin,
+            return {files,error,
                     computedName, isLoading,noData}
         }
     }

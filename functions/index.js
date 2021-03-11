@@ -15,7 +15,7 @@ exports.addAdminRole = functions.https.onCall((data,context)=>{
             message: `Succees! ${data.email} has been created as admin`
         }
     }).catch(err => {
-        console.log("err make admin role")
+        // console.log("err make admin role")
         return err;
     })
 })
@@ -28,11 +28,11 @@ exports.createUser = functions.https.onCall((data) => {
     .createUser(data)
     .then((userRecord) => {
       // See the UserRecord reference doc for the contents of userRecord.
-      console.log('Successfully created new user:', userRecord.uid);
+      // console.log('Successfully created new user:', userRecord.uid);
       return {uid: userRecord.uid}
     })
     .catch((error) => {
-      console.log('Error creating new user:', error);
+      // console.log('Error creating new user:', error);
     });
 })
 
@@ -47,7 +47,7 @@ exports.updateUser = functions.https.onCall((data)=>{
     })
     .then((userRecord) => {
       // See the UserRecord reference doc for the contents of userRecord.
-      console.log('Successfully updated user', userRecord.toJSON());
+      //console.log('Successfully updated user', userRecord.toJSON());
       return {user: userRecord.toJSON() }
     })
     .catch((error) => {
@@ -62,7 +62,7 @@ exports.deleteUser = functions.https.onCall((data)=>{
     .auth()
     .deleteUser(data.uid)
     .then(() => {
-      console.log('Successfully deleted user');
+      //console.log('Successfully deleted user');
     })
     .catch((error) => {
       console.log('Error deleting user:', error);

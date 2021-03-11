@@ -26,6 +26,7 @@
                 <ul class="router" v-else>
                     <li><router-link :to="{name: 'Dashboard'}">Dashboard</router-link></li>
                     <li><router-link :to="{name: 'Laboratory'}">Laboratory</router-link></li>
+                    <li><router-link :to="{name: 'Classroom'}">Classroom</router-link></li>
                     <li><router-link :to="{name: 'ResourceUser'}">Resource</router-link></li>
                 </ul>
                 
@@ -72,18 +73,51 @@ export default {
         const route = useRoute();
         watch(route,(to,from)=>{
             switch(to.name){
-                case 'DashBoard','LessonUser':{
+                case 'DashBoard':
+                case'LessonUser':
                     redBallMode.value = 1;
                     break;
-                }
-                case 'Slide','Laboratory':{
+                
+                case 'Slide':
+                case 'Laboratory':
                     redBallMode.value = 2;
                     break;
-                }
-                case 'ResourceUser','Folders':{
+                
+                case 'ResourceUser':
+                case 'FoldersUser':
+                case 'Resource':
+                case'Folders':
+                case 'CreateFile':
+                case 'UpdateFile':
                     redBallMode.value = 3;
                     break;
+                
+                case 'Classroom':
+                    redBallMode.value = 4;
+                    break;
+                
+                case 'ClassManage':
+                    redBallMode.value = 5;
+                    break;
+                
+                case 'Courses':
+                case 'Lessons':
+                case'CreateCourse':
+                case 'CreateLesson':
+                case 'UpdateCourse':
+                case 'UpdateLesson':
+                    redBallMode.value = 6;
+                    break;
+                
+                case 'Teachers':
+                case'CreateTeacher':
+                case 'UpdateTeacher':{
+                    redBallMode.value = 7;
+                    break;
                 }
+                default:
+                    redBallMode.value = 0;
+                    break;
             }
         })
 

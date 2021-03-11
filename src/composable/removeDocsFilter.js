@@ -19,10 +19,10 @@ const removeDocsFilter = () => {
                 // Commit the batch
                 return batch.commit();
         }).then(function() {
-            console.log(`Delete ${collection} has ${key} = ${value} completed`)
+            //(`Delete ${collection} has ${key} = ${value} completed`)
         }).catch(err => {
             error.value = err.message;
-            console.log("🚀 ~ file: removeDocsFilter.js ~ line 26 ~ error.value", error.value)
+            //console.log("🚀 ~ file: removeDocsFilter.js ~ line 26 ~ error.value", error.value)
         })
     }
 

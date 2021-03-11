@@ -39,7 +39,7 @@
                 </div>
             </div>
         </div>
-        <div class="right-section" v-if="!firstLoad">
+        <div class="right-section overflowList" v-if="!firstLoad">
             <router-view></router-view>
         </div>
         <div class="right-section" v-else><Loading/></div>
@@ -131,18 +131,6 @@ import _ from 'lodash'
     align-items: center;
     flex-direction: column;
     overflow-y: auto;
-        &::-webkit-scrollbar-track{
-            border-radius: 10px;
-            background-color: #fdfbfb00;
-        }
-        &::-webkit-scrollbar{
-            width: 12px;
-            background-color: #fffdfd00;
-        }
-        &::-webkit-scrollbar-thumb{
-            border-radius: 10px;
-            background-color: #ffffff00;
-        }
 }
 .right-section{
     width: 65%;

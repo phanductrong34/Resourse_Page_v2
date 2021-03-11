@@ -49,11 +49,11 @@
                 <div class="row">
                     <div class="input-field col s4">
                         <input id="lesson-homework" type="text" class="validate" v-model="homeworkURL" required>
-                        <label class="active"  for="lesson-homework">Homework Drive URL</label>
+                        <label class="active"  for="lesson-homework">Homework URL</label>
                     </div>
                     <div class="input-field col s4">
                         <input id="lesson-playlist" type="text" class="validate" v-model="playlistURL" required>
-                        <label class="active"  for="lesson-playlist">Playlist Youtube URL</label>
+                        <label class="active"  for="lesson-playlist">Youtube URL</label>
                     </div>
                     <div class="input-field col s4">
                         <input id="lesson-slide" type="text" class="validate" v-model="slideURL" required>
@@ -182,6 +182,7 @@
                             homeworkURL : homeworkURL.value,
                             playlistURL : playlistURL.value,
                             slideURL : slideURL.value,
+                            recordURL: "",
                             createdAt : timestamp()
                         }
                         await addDoc(newLesson);

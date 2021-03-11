@@ -133,7 +133,7 @@
             
             //delete file khỏi collection (check password admin thì mới được xóa)
             const deleteFile = async() => {
-                console.log("user pass",projectAuth.currentUser.password)
+                //console.log("user pass",projectAuth.currentUser.password)
                 const check = prompt("Type your admin password to delete");
                 if(check != null && check == password.value){
                     await remove(props.id);

@@ -11,7 +11,7 @@ const updateEmailPassword = async(user,email,password)=>{
     try {
         await user.updateEmail(email);
         await user.updatePassword(password);
-        console.log("Update email password from auth succeed!")
+        //("Update email password from auth succeed!")
         error.value = null;
     } catch (err) {
         error.value = err.message;

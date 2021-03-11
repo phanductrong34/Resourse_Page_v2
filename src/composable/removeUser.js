@@ -8,7 +8,7 @@ const deleteUser = async(user)=>{
     try {
         await user.delete();
 
-        console.log("User deleted from auth succeed!")
+        //console.log("User deleted from auth succeed!")
         error.value = null;
     } catch (err) {
         error.value = err.message;

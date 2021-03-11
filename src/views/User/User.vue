@@ -32,7 +32,7 @@ export default {
 
       watchEffect(()=>{
         if(userData.value !== null){
-          console.log("first load all data")
+          //console.log("first load all data")
           store.dispatch('lessons/firstLoadLesson');
           store.dispatch('lessons/firstLoadUnlock');
           store.dispatch('course/firstLoadCourse');
