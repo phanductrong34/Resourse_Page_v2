@@ -55,6 +55,7 @@
     import UpdateClassModal from '@/components/Classes/UpdateClassModal'
     import {projectFirestore} from '@/firebase/config'
     export default {
+        emits:['activateClass'],
         components:{
             CardClass2,UpdateClassModal,
         },

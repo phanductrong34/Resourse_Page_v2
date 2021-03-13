@@ -9,7 +9,7 @@ const useCollection = (collection)=> {
             return res
         }catch(err){
             error.value = err.message;
-            console.log("Add doc has an error")
+            console.log(error.value,collection);
         }
     } 
     return {error, addDoc}

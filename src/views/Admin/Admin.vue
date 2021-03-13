@@ -8,7 +8,6 @@
             </transition>
         </router-view>
 
-        <Background/>
         
     </div>
 
@@ -16,11 +15,9 @@
 
 <script>
 import Sidenav from '@/components/Sidenav'
-import Background from '@/components/Background'
 export default {
   components:{
     Sidenav,
-    Background,
   },
   data(){
     return{

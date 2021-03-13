@@ -1,6 +1,6 @@
 <template>
     <div class="page dashboard">
-        <div class="left-section">
+        <div class="left-section overflowList">
             <Loading v-if="!computedInfo" />
             <div class="course-container" v-else>
                 <h3 class="course-title">Course Lesson</h3>

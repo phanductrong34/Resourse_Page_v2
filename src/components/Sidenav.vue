@@ -147,6 +147,7 @@ export default {
 
         const router = useRouter();
         const logingOut = async()=>{
+            console.log("yoyoyoyoyoyoyoyoyoyoo")
            await logout();
             if(!error.value){
                 store.dispatch['user/resetUser'];

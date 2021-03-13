@@ -6,7 +6,7 @@
                 <ClassNav @activateCourse="activateCourse" :activeCourse="activeCourse"/>
                 <SliderCard2 :cardWidth="209" :cardHeight="128" :cardSpace="18" :cardCount="3" 
                                 :activeCourse="activeCourse" :activeClass="activeClass" :activeClassID="activeClassID"
-                                @activateClass="activeClass = $event"  @activateClassID="activeClassID = $event"/>
+                                @activateClass="activeClass = $event"/>
             </div>
 
             <StudentSection :activeClassID="activeClassID" :activeCourseID="activeCourseID"/>

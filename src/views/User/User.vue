@@ -8,7 +8,6 @@
             </transition>
         </router-view>
 
-        <Background/>
         
     </div>
 
@@ -16,13 +15,11 @@
 
 <script>
 import Sidenav from '@/components/Sidenav'
-import Background from '@/components/Background'
 import {useStore} from 'vuex'
 import { computed, watchEffect } from 'vue'
 export default {
   components:{
     Sidenav,
-    Background,
   },
   setup(props) {
       //load lần đầu và setup listener để cập nhật vào store
