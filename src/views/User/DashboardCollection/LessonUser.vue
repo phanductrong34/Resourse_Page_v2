@@ -10,7 +10,7 @@
         <LessonAssignment 
             :hasWork="hasWork" 
             v-if="activeTab == 'assignment'" 
-            :lesson="lesson" :currentWork="currentWork" 
+            :lesson="lesson"
             @toggleHasWork="hasWork = $event"/>
         <LessonResource 
             v-if="activeTab == 'resource'" 
@@ -41,16 +41,16 @@
             //biến điều khiển trạng thái đã nộp bài và chưa nộp
             const hasWork = ref(false);
             //watch lesson change to load again
-            const currentWork = ref(null);
+            const currentWorks = ref(null);
 
             watchEffect(()=> {
-                const work = store.getters['works/getWork'](props.number); //work nhận null hoặc obj
-                if(work){
+                const works = store.getters['works/getWorks'](props.number); //work nhận null hoặc array
+                if(works){
                     hasWork.value = true
                 }else{
                     hasWork.value = false;
                 }
-                currentWork.value = work;
+                currentWorks.value = works;
             });
 
 
@@ -61,7 +61,7 @@
                     next();
                 }
             })
-            return {activeTab, lesson,hasWork,currentWork};
+            return {activeTab, lesson,hasWork,currentWorks};
         }
         
     }

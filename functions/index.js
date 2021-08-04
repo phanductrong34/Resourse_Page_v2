@@ -71,7 +71,71 @@ exports.deleteUser = functions.https.onCall((data)=>{
 })
 
 
-
 // ta lấy user bằng hàm getUserByEmail, sau đó setCustomClaim cho nó là 1 object có data bất kì
 // có thể là premium = true cũng đc, input là email, output là message
+
+
+const {google} = require('googleapis');
+const path = require('path')
+const fs = require('fs')
+
+/*
+//data = {CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, REFRESH_TOKEN, filePath, fileName}
+exports.uploadVideo = functions.https.onCall((data) => {
+
+    const oauth2Client  = new google.auth.OAuth2(
+      data.CLIENT_ID,data.CLIENT_SECRET, data.REDIRECT_URI
+    )
+
+    const drive = google.drive({
+      version : "v3",
+      auth: oauth2Client
+    })
+
+    //upload
+    drive.files.create({
+        requestBody: {
+            name: data.fileName,
+            mimeType: 'video/mp4'
+            
+        },
+        media:{
+            mimeType: "video/mp4",
+            body: fs.createReadStream(filePath)
+        },
+    })
+    //lấy fileID để public link
+    .then(response => {  
+      console.log("upload-data: " + response.data);
+      const fileId = response.data.id;
+      
+      drive.permissions.create({
+        fileId : fileID,
+        requestBody : {
+            role : 'reader',
+            type : 'anyone',
+        }
+      })
+
+    })
+    //lấy về link
+    .then(()=>{
+      drive.files.get({
+          fileId : fileID,
+          fields : "webViewLink, webContentLink"
+      })
+    })
+    // ==> link trả về đây
+    .then((result)=> {
+      return {data: result.data} 
+    })
+
+    // bắt toàn bộ lỗi
+    .catch (error =>{
+        console.log(error.message);
+    })
+
+})
+*/
+
 

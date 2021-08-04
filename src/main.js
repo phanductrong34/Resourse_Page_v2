@@ -9,14 +9,39 @@ import App from './App.vue'
 import router from './router'
 import {store} from './store/index'
 import {projectAuth} from './firebase/config'
+import {sync} from 'vuex-router-sync'
 
 // import component;
 import Image from '@/components/Base/Image.vue'
 import Loading from '@/components/Base/Loading.vue'
 import NoData from '@/components/Base/NoData.vue'
 
-let app
+//import Toast
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
+import '@/styles/global.scss';
+//option for toast
+const option = {
+    transition: "Vue-Toastification__fade",
+    maxToasts: 5,
+    newestOnTop: true,
+    position: "top-center",
+    timeout: 1000,
+    closeOnClick: true,
+    pauseOnFocusLoss: true,
+    pauseOnHover: true,
+    draggable: true,
+    draggablePercent: 1.36,
+    showCloseButtonOnHover: false,
+    hideProgressBar: true,
+    closeButton: "button",
+    icon: true,
+    rtl: false,
+}
 
+
+let app
+sync(store, router, {moduleName: 'route'});
 //Chạy lần đầu và mỗi lần user thay đổi thi lại chạy lại
 projectAuth.onAuthStateChanged(async(_user) => {
     if(!app){   //chỉ chạy một lần
@@ -25,8 +50,9 @@ projectAuth.onAuthStateChanged(async(_user) => {
         app.component('Image', Image);    //props: refUrl
         app.component('Loading',Loading); 
         app.component('NoData',NoData);  // props: data
+        // app.component('star-rating', VueStarRating.default)
         
-        app.use(store).use(router).mount('#app')
+        app.use(store).use(router).use(Toast,option).mount('#app')
     }
 
     if(_user){

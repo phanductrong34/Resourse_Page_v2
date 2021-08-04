@@ -5,7 +5,9 @@
                     @reload="reload"/>
         <Loading v-if="isLoading" />
         <StudentList v-else :students="students" 
-                     @updateCount="updateCount"/>
+                     @updateCount="updateCount"
+                     :activeStudentID="activeStudentID"
+                     @activateStudentID="$emit('activateStudentID',$event)"/>
     </div>
 </template>
 
@@ -16,7 +18,7 @@
 
     import getCollectionFilter from '@/composable/getCollectionFilter'
     export default {
-        props: ['activeClassID','activeCourseID'],
+        props: ['activeClassID','activeCourseID','activeStudentID'],
         components:{
             StudentNav,StudentList
         },

@@ -57,7 +57,7 @@ import lottie from 'lottie-web'
 import {onMounted, ref, watch, watchEffect,computed} from 'vue'
 import {projectAuth} from '@/firebase/config'
 import useLogout from '@/composable/useLogout'
-import {useRouter,useRoute} from 'vue-router'
+import {useRouter} from 'vue-router'
 import { useStore } from 'vuex'
 import _ from 'lodash'
 
@@ -69,10 +69,12 @@ export default {
     setup() {
     //Chuyển style cho red-ball bằng cách 
     //click vào các router-link thì trigger đổi số mode truyền vào cho <RedBall/>
+        const store = useStore();
         const redBallMode = ref(1);
-        const route = useRoute();
-        watch(route,(to,from)=>{
-            switch(to.name){
+        const currentRoute = computed(()=>store.state.route.name);
+
+        watch(currentRoute,(to,from)=>{            
+            switch(to){
                 case 'DashBoard':
                 case'LessonUser':
                     redBallMode.value = 1;
@@ -130,7 +132,6 @@ export default {
                 autoplay: true,
                 path: '/assets/anim/bunny-laptop.json' // the path to the animation json
             });
-
         })
 
         
@@ -138,7 +139,7 @@ export default {
         // logout and listen to change to push to login
 
         const {logout, error} = useLogout()
-        const store = useStore();
+
 
         const userData = computed(()=> store.getters['user/getUserData']);
         const isAdmin = computed(()=> store.getters['user/getIsAdmin']);

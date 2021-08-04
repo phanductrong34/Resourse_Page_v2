@@ -17,7 +17,7 @@ const getCollection = (collection) => {
         //Lấy đc thành công data rồi thì sẽ clear error
         error.value = null
     }, (err) => {
-        console.log(err.message);
+        console.log(err.message,collection);
         documents.value = null;
         error.value = 'could not fetch data'
     })

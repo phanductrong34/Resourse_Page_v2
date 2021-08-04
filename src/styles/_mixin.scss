@@ -18,4 +18,10 @@
 @mixin transition{
     transition: all 0.2s ease;
 }
+@mixin center-1{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
 

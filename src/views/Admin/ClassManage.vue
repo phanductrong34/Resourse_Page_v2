@@ -9,12 +9,12 @@
                                 @activateClass="activeClass = $event"/>
             </div>
 
-            <StudentSection :activeClassID="activeClassID" :activeCourseID="activeCourseID"/>
+            <StudentSection :activeClassID="activeClassID" :activeCourseID="activeCourseID" :activeStudentID="activeStudentID"  @activateStudentID="activeStudentID = $event"/>
             <LessonSection :activeCourseID="activeCourseID" :activeClassID="activeClassID"/>
 
         </div>
         <div class="right-section">
-
+            <CommentUser :activeStudentID="activeStudentID" :activeClassID="activeClassID"/>
         </div>
     </div>
 
@@ -23,9 +23,11 @@
 
 <script>
 import { computed, ref, watchEffect} from "vue";
+import {projectFirestore} from "@/firebase/config"
 import ClassNav from "@/components/Classes/ClassNav.vue"
 import SliderCard2 from "@/components/Classes/SliderCard2"
 import StudentSection from "@/components/Students/StudentSection.vue"
+import CommentUser from '@/components/Comments/CommentUser.vue'
 import LessonSection from "@/components/Lessons/LessonSection.vue"
 import _ from 'lodash'
 
@@ -36,6 +38,7 @@ export default {
     components: {
         ClassNav, SliderCard2,
         StudentSection,LessonSection,
+        CommentUser
     },
 
     setup() {
@@ -45,6 +48,7 @@ export default {
         const activeClass = ref(0);
         const activeClassID = ref(null)
         const lessons = ref(null)
+        const activeStudentID = ref(null);
 
         const activateCourse =(type)=> {
             activeCourse.value = type;
@@ -57,7 +61,6 @@ export default {
 
     //////////////////////1. LOAD REALTIME ALL CLASSES //////////////////////// 
         const {documents:allClasses,error: errClasses} = getCollectionRT("classes");
-
 
     ///////////////////// 2.   FILTER CLASSES    //////////////////////////////
         const filterClasses = ref([])
@@ -76,9 +79,19 @@ export default {
             }
         })
 
+        /////////////// 4. ACTIVE STUDENT ID ////////////////////// 
+        watchEffect(async()=>{
+            activeStudentID.value = null;
+            if(activeClassID.value !== null){
+                const res = await projectFirestore.collection("students").where("classID", "==", activeClassID.value).orderBy('createdAt','desc').limit(1).get();
+                activeStudentID.value = res.docs[0].id;
+                console.log("🚀 ~ file: ClassManage.vue ~ line 88 ~ activeStudentID.value", activeStudentID.value)   
+            }
+        })
+
         return {
             activeCourse,activateCourse,activeClass,
-            filterClasses,activeClassID,activeCourseID,
+            filterClasses,activeClassID,activeCourseID,activeStudentID,
         }
 
     }
@@ -110,6 +123,7 @@ export default {
 
 .right-section{
     width: 32%;
+    position: relative;
 }
 
 </style>

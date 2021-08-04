@@ -32,6 +32,7 @@ import LessonUser from '../views/User/DashboardCollection/LessonUser.vue'
 import Classroom from '../views/User/Classroom.vue'
 
 
+
 // GUARD: protect welcome screen---- Cái này phải viết trên biến router
 const requiredNoAuth = (to, from,next)=>{
 

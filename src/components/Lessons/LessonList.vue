@@ -1,5 +1,5 @@
 <template>
-    <div class="lesson-list">
+    <div class="lesson-list overflowList">
         <div :class="[{unlock : checkUnlock(lesson.number)},'lesson-card']" 
             v-for="lesson in orderLessons" :key="lesson.id"
             @click="$emit('toggleLesson',lesson.number)"
@@ -35,18 +35,6 @@
     width: 100%;
     overflow-x: visible;
     overflow-y: hidden;
-    &::-webkit-scrollbar-track{
-        border-radius: 10px;
-        background-color: transparent;
-    }
-    &::-webkit-scrollbar{
-        height: 10px;
-        background-color: transparent;
-    }
-    &::-webkit-scrollbar-thumb{
-        border-radius: 3px;
-        background-color: $color-gray-light-2;
-    }
 }
 .lesson-card{
     min-height: 4rem;

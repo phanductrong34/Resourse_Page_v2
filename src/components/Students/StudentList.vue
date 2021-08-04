@@ -1,6 +1,9 @@
 <template>
     <div class="student-list">
-        <div class="student-card" v-for="student in students" :key="student.id">
+        <div :class="[{active: student.id == activeStudentID},'student-card']" 
+            @click="$emit('activateStudentID',student.id)"
+            v-for="student in students" 
+            :key="student.id">
             <div class="student-ava">
                 <div class="ava-container"><Image class="ava" :refUrl="student.avaRef"/></div>
             </div>
@@ -24,7 +27,7 @@
     import UpdateStudentModal from '@/components/Students/UpdateStudentModal'
     import {ref} from 'vue'
     export default {
-        props: ['students'],
+        props: ['students','activeStudentID'],
         components:{
             UpdateStudentModal
         },
@@ -79,6 +82,7 @@
         max-height: 74px;
         border-radius: 0.7rem;
         @include transition;
+        z-index: 1;
 
         &:hover{
             cursor: pointer;
@@ -88,6 +92,19 @@
             }
             & .student-edit{
                 opacity: 1;
+            }
+        }
+        &.active{
+            &::after{
+                content: "";
+                position: absolute;
+                width: 103%;
+                height: 106%;
+                top: -2px;
+                left: -2px;
+                z-index: -2;
+                border-radius: 0.8rem;
+                border: 3px solid $color-primary;
             }
         }
     }

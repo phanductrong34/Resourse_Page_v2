@@ -10,7 +10,7 @@
                 :activeStudentID="activeStudentID" 
                 @showWorks="showWorks"/>
         </div>
-        <div class="class-works overflowList">
+        <div class="class-works">
             <div class="works-header row" v-if="lessonCount">
                 <div class="col s8">
                     <h5 class="works-title" v-if="isEach">Sumitted Works from {{activeStudent.nickname}}</h5> 
@@ -26,38 +26,37 @@
             </div>
             <!-- each -->
             <div class="result-filter" v-if="isEach">
-                    <div class="works-list" v-if="currentWorksList">
-                        <div class="works-card" v-for="work in currentWorksList" :key="work.id">
-                            <a :href="work.workURL" target="_blank">
-                                <span class="works-student">{{activeStudent.nickname}}.</span>
-                                <span class="works-number">{{work.lessonNumber}}</span>
-                                <img class="works-img" src="@/assets/png/work-folder.svg" alt="">
-                            </a>
+
+                    <div class="works-overflow"  v-if="currentWorksList">
+                        <div class="works-list">
+                            <div v-for="(work,index) in currentWorksList" :key="index">
+                                <WorkCard :work="work"/>
+                            </div>
                         </div>
                     </div>
-                    <div class="works-list" v-if="!currentWorksList && !noData">
+
+                    <div class="works-wrapper" v-if="!currentWorksList && !noData">
                         <Loading/>
                     </div>
-                    <div class="work-list" v-if="noData">
+                    <div class="works-wrapper" v-if="noData">
                         <NoData :data="'works'"/>
                     </div>
             </div>
             <!-- all -->
             <div class="result-filter" v-else>
                     
-                    <div class="works-list" v-if="allWorkList">
-                        <div class="works-card" v-for="work in allWorkList" :key="work.id">
-                            <a :href="work.workURL" target="_blank">
-                                <span class="works-student">{{work.studentNickname}}.</span>
-                                <span class="works-number">{{work.lessonNumber}}</span>
-                                <img class="works-img" src="@/assets/png/work-folder.svg" alt="">
-                            </a>
+                    <div class="works-overflow"  v-if="allWorkList">
+                        <div class="works-list">
+                            <div v-for="(work,index) in allWorkList" :key="index">
+                                <WorkCard :work="work"/>
+                            </div>
                         </div>
                     </div>
-                    <div class="works-list" v-if="!allWorkList && !noDataAll">
+
+                    <div class="works-wrapper" v-if="!allWorkList && !noDataAll">
                         <Loading/>
                     </div>
-                    <div class="work-list" v-if="noDataAll">
+                    <div class="works-wrapper" v-if="noDataAll">
                         <NoData :data="'works'"/>
                     </div>         
             </div>
@@ -67,11 +66,12 @@
 
 <script>
     import UserStudentList from '@/views/User/ClassroomCollection/UserStudentList.vue'
+    import WorkCard from '@/components/Work/WorkCard.vue'
     import {useStore} from 'vuex'
     import {ref,computed,onMounted, watchEffect,watch} from 'vue'
     import _ from 'lodash'
     export default {
-        components: {UserStudentList},
+        components: {UserStudentList,WorkCard},
         setup(props) {
             const initSelect = ()=>{
                 $(document).ready(function(){
@@ -139,7 +139,7 @@
                 noDataAll.value = false;
                 const allWorks = await store.dispatch('studentWorks/getAllWorks');
                 if(allWorks){
-                    allWorkList.value = _.orderBy(allWorks,['lessonNumber'],['asc']);
+                    allWorkList.value = _.orderBy(allWorks,['lessonNumber'],['desc']);
                     
                 }else{
                     allWorkList.value = null;
@@ -188,6 +188,7 @@
         display: flex;
         flex-direction: column;
     }
+
     .class{
         &-header{
             display: flex;
@@ -213,8 +214,8 @@
             }
         }
         &-list{
-  -webkit-backface-visibility: hidden; /* add to fix webkit bug jitter */
-  -webkit-transform: perspective(1000px); /* add to fix webkit bug jitter */
+            -webkit-backface-visibility: hidden; /* add to fix webkit bug jitter */
+            -webkit-transform: perspective(1000px); /* add to fix webkit bug jitter */
             height: 52vh;
             transform: scale(1.1) translateX(8%);
             padding: 0.5rem;
@@ -222,61 +223,69 @@
             overflow: auto;
         }
         &-works{
-            padding-left:10rem;
+            padding-left:3rem;
             height:  54vh;
-            width: 76%;
-            overflow-y: auto;
+            width: 100%;
             // background-color: blue;
         }
+    }
+    .result-filter{
+        position: relative;
+        width: 100%;
+        height: 100%;
+        margin-top: -1.5rem;
     }
     .works{
         &-header{
             display: flex;
             align-items: center;
         }
-        &-list{
-            display: flex;
-            padding-left: 1.2rem;
+        &-overflow{
+            position: absolute;
             width: 100%;
-            flex-wrap: wrap;
-        }
-        &-card{
-            position: relative;
-            width: 13%;
-            margin-right: 1.2rem;
-            @include transition;
-            &:hover{
-                cursor: pointer;
-                transform: scale(1.1);
+            height: 90%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            top: 0;
+            left: 0;
+            &::-webkit-scrollbar-track{
+                border-radius: 10px;
+                background-color: #00000028;
+            }
+            &::-webkit-scrollbar{
+                width: 12px;
+                background-color:#ffffff00;
+            }
+            &::-webkit-scrollbar-thumb{
+                border-radius: 10px;
+                background-color: #ffffff48;
             }
         }
-        &-img{
-            width: 100%;
-        }
-        &-student{
-            position: absolute;
-            bottom:14%;
-            left: 14%;
-            color: $color-primary;
-        }
-        &-number{
-            position: absolute;
-            top: 0%;
-            right: 10%;
-            color: white;
-            font-size: 2.1rem;
-            font-family: "Averta Bold";
+        &-list{
+            height: 100%;
+            width: 100rem;
+            display: flex;
+            flex-wrap: nowrap;
+            margin-top: 2.5rem;
+            & > * {
+                margin-right: 1rem;
+                
+                &:not(:last-child){
+                    
+                }
+            }
         }
     }
     .toggle-filter{
-        padding: 0.5rem 1rem 0.5rem 1rem;
+        padding: 0.5rem 0.6rem 0.5rem 0.6rem;
         cursor: pointer;
         @include transition;
         display: flex;
         justify-content: center;
         align-items: center;
+        color: $color-gray-dark;
         &.active{
-            background-color: $color-primary;
+            background-color: $color-orange;
             border-radius: 10rem;
             color: white;
         }

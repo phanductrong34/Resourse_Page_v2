@@ -1,0 +1,17 @@
+$vt-font-family: "Averta Semi Bold";
+$vt-toast-min-width: 300px;
+$vt-color-success: #59C1AD;
+$vt-color-warning:#eab75c;
+$vt-color-error:#aa0f1e;
+$vt-color-info:#4086F4;
+
+$vt-toast-min-height: 40px;
+
+
+@import "vue-toastification/src/scss/_variables";
+@import "vue-toastification/src/scss/_toastContainer";
+@import "vue-toastification/src/scss/_toast";
+@import "vue-toastification/src/scss/_closeButton";
+@import "vue-toastification/src/scss/_progressBar";
+@import "vue-toastification/src/scss/_icon";
+@import "vue-toastification/src/scss/animations/_bounce";

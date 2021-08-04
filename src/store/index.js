@@ -4,7 +4,10 @@ import getDoc from '@/composable/getDoc'
 import getCollectionFilter from '@/composable/getCollectionFilter'
 import useCollection from '@/composable/useCollection'
 import updateDoc from '@/composable/updateDoc'
+import removeDoc from '../composable/removeDoc'
 import _ from 'lodash'
+import { useToast } from "vue-toastification";
+const toast = useToast()
 
 //hàm rải data của doc từ onSnapshot và thêm trường id nữa
 const transformDoc = (document)=>{
@@ -269,11 +272,11 @@ const moduleWorks = {
     workList: []
   },
   getters:{
-    getWork:(state)=>(number)=>{
+    getWorks:(state)=>(number)=>{  // trả về array works của 1 lesson trong mảng tất cả bài của học viên ấy
       if(state.workList.length == 0) return null;
       else{
-        const obj = state.workList.find((work)=> work.lessonNumber == number);
-        if(obj) return obj;
+        const curWorks = state.workList.filter((work)=> work.lessonNumber == number);
+        if(curWorks.length > 0) return curWorks;
         else return null;
       }
     },
@@ -316,43 +319,74 @@ const moduleWorks = {
       commit('resetWorks');
     },
     //payload = {inputURL, number}
-    async uploadWork({commit,rootGetters}, {inputURL, number}){
+    async uploadWork({commit,rootGetters}, {videoUrl,thumbnailUrl, workSize, workName, workDuration, publicId, number,downloadUrl}){
       const newWork = {
         lessonNumber: number,
-        workURL: inputURL,
+        videoUrl,
+        thumbnailUrl,
+        workSize,
+        workDuration,
+        workName,
+        publicId,
+        downloadUrl,
         studentNickname:rootGetters['user/getUserData'].nickname,
         studentID: rootGetters['user/getCurrentUser'].uid,
         classID: rootGetters['user/getClassID'],
         courseID: rootGetters['user/getCourseID'],
         createdAt: timestamp(),
-        score: 0,
+        score: 0
       }    
       const {error :err1, addDoc} = useCollection("works");
       const res = await addDoc(newWork);
-      //Đợi để lấy ID sau đó
-      commit('pushWork',{...newWork, id: res.id});
-      // thêm id này vào works curea học sinh
-      await projectFirestore.collection("students").doc(newWork.studentID).update({
-        works: FieldValue.arrayUnion(res.id)
-      })
+      if(!err1.value){
+        //Đợi để lấy ID sau đó
+        commit('pushWork',{...newWork, id: res.id, createdAt: 'Just now'});
+        // thêm id này vào works curea học sinh
+        await projectFirestore.collection("students").doc(newWork.studentID).update({
+          works: FieldValue.arrayUnion(res.id)
+        })
+
+        //toast thành công ở đây
+        toast.success("Upload Homework succesfully");
+        return newWork;
+      }else{
+        alert("Upload Fail: "+ err1.value)
+        //toast fail ở đây
+        return null;
+      }
+
     },
 
-    //id ở đây là id của work đang hiện tại có
-    async updateWork({rootGetters,commit,getters},{id,inputURL,number}){
-      const updatedWork = {
-        lessonNumber: number,
-        workURL: inputURL,
-        studentID: rootGetters['user/getCurrentUser'].uid,
-        classID: rootGetters['user/getClassID'],
-        courseID: rootGetters['user/getCourseID'],
-        createdAt: timestamp(),
-        score: 0,
+    async deleteWork({state,rootGetters},{workID,studentID}){
+  
+      //xóa ở collection work
+      const {remove, error: err1} = removeDoc("works");
+      await remove(workID);
+      if(err1.value){
+        console.log(err1.value);
+        toast.error('Delete homework failed');
+        return null;
       }
-      const {error, update} = updateDoc("works");
-      await update(id,updatedWork);
-      commit['updateWork',{...updatedWork, id: id}]
+  
+      //xóa ở student works array bằng cách update lại field, fiter ra
+      const {update, error: err2} = updateDoc('students')
+      const studentId = rootGetters
+      await update(studentID,{
+        works: FieldValue.arrayRemove(workID)
+      })
+      if(err1.value){
+        console.log(err2.value);
+        toast.error('Delete homework failed');
+        return null;
+      }
+  
+      // thành công thì xóa ở state offline array worklist
+      state.workList = state.workList.filter(work => work.id !== workID);
+      toast.success(`Delete homework successfully!!`);
     }
-  }
+
+  },
+
 
 
 }
@@ -418,6 +452,26 @@ const moduleStudentWorks = {
     }
   }
 }
+
+const moduleImages = {
+  namespaced:true,
+  state: {
+    imageList: {}
+  },
+  getters:{
+    getImage: (state)=>(refUrl)=>{
+      return state.imageList[refUrl] || null;
+    }
+  },
+  mutations:{
+
+  },
+  actions:{
+    addImage({state},{refUrl,photoURL}){
+      state.imageList[refUrl] = photoURL;
+    }
+  }
+}
 export const store =  createStore({
   state: {
   },
@@ -432,5 +486,6 @@ export const store =  createStore({
     class: moduleClass,
     works: moduleWorks,
     studentWorks: moduleStudentWorks,
+    images: moduleImages
   }
 })
