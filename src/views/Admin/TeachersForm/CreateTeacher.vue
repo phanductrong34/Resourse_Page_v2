@@ -6,7 +6,7 @@
                     <i class="material-icons">clear</i>
                 </span>
                 <div class="row">
-                    <h3 class="center">Create</h3>
+                    <h3 class="center">Create Teacher</h3>
                 </div>
                 <div class="row">
                     <div class="input-field col s8">
@@ -36,16 +36,6 @@
                         <label class="active"  for="admin-password">Phone Number</label>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="input-field col s12">
-                        <select v-model="role" id="admin-role" required>
-                            <option value="" disabled selected>Choose your option</option>
-                            <option value="Teacher">Teacher</option>
-                            <option value="Mentor">Mentor</option>
-                        </select>
-                        <label>Role</label>
-                    </div>
-                </div>
                 <div class="row" v-if="error">
                     <div class="center error-message">{{error}}</div>
                 </div>
@@ -70,6 +60,7 @@
     import {useRouter} from 'vue-router'
     import setDoc from '@/composable/setDoc'
     import {timestamp ,projectFunctions} from '@/firebase/config'
+    import {useToast} from 'vue-toastification'
     export default {
         setup() {
             //SET UP FOR DROPDOWN INPUT
@@ -80,6 +71,7 @@
             })
             /////////////////////////////////
             const router = useRouter();
+            const toast = useToast();
             const {error:errSet, set} = setDoc("admins")
 
             //ref
@@ -88,7 +80,6 @@
             const nickname = ref("");
             const email = ref("");
             const password = ref("");
-            const role = ref("");
             const phone = ref("");
             
             const clearField = ()=>{
@@ -97,12 +88,11 @@
                 nickname.value = "";
                 email.value = "";
                 password.value = "";
-                role.value = "";
                 phone.value = "";
             }
 
             //Tạo user mói ở auth, lấy uid trả về tạo 1 doc lưu thông tin trong firestore (admins)
-            const addAdminRole = projectFunctions.httpsCallable('addAdminRole');
+            const addTeacherRole = projectFunctions.httpsCallable('addTeacherRole');
             const createUser = projectFunctions.httpsCallable('createUser');
             const handleSubmit = async()=> {
                 error.value = null;
@@ -110,16 +100,14 @@
                     error.value = "Nickname must less than 7 character"
                 }else{
                     let avaRef = null;
-                    if(role.value == 'Teacher') avaRef = "teacher/ava-teacher.png"
-                    else if(role.value == 'Mentor') avaRef = "teacher/ava-mentor.png";
 
                     const admin = {
-                        avaRef,
+                        avaRef: "teacher/ava-mentor.png",
                         name: name.value,
                         nickname: nickname.value,
                         phone: phone.value,
                         email: email.value,
-                        role: role.value,
+                        role: 'teacher',
                         createdAt: timestamp()
                     }
                     // tạo user mới trên auth bằng admin SDK
@@ -129,13 +117,13 @@
                     
                     // tạo doc admin trên firestore
                     await set(uid,admin);
-                    // thêm claim cho admin
-                    const resAdmin = await addAdminRole({email: admin.email})
+                    // thêm claim cho teacher
+                    const resAdmin = await addTeacherRole({email: admin.email})
                     //console.log("🚀 ~ file: CreateTeacher.vue ~ line 116 ~ resAdmin", resAdmin)
                     
                     if(!errSet.value){
                         clearField();
-                        alert(`Add new admin-${admin.role} succeed`);
+                        toast.success(`Create new teacher succeesfully`);
                         router.push({name: 'Teachers'})
                     }
                 }
@@ -146,7 +134,7 @@
                 router.push({name: 'Teachers'})
             }
             
-            return  {name,email,password,role,phone,nickname,
+            return  {name,email,password,phone,nickname,
                     clearField,handleSubmit,closeModal,error,errSet}
         }
     }

@@ -2,7 +2,7 @@
     <div class="lesson overflowList">
         <div class="lesson-title">
             <h3 class="title center">Lessons from {{id}}</h3>
-            <router-link :to="{name: 'CreateLesson', params:{id : id}}">
+            <router-link :to="{name: 'CreateLesson', params:{id : id}}" v-if="isAdmin">
                 <button class="button-create btn waves-effect waves-light red darken-4">add lesson</button>
             </router-link>
         </div>
@@ -44,6 +44,10 @@
                             <h6>Slide URL:</h6>
                             <a :href="lesson.slideURL" target="_blank">Click me</a>
                         </div>
+                        <div class="lesson-link">
+                            <h6>Loop URL:</h6>
+                            <a :href="lesson.loopURL" target="_blank">Click me</a>
+                        </div>
                         <div class="lesson-edit">
                             <router-link :to="{name: 'UpdateLesson', params:{id : lesson.id, courseID: id}}">
                                 <button class="button-create waves-effect waves-light btn red darken-4">
@@ -63,12 +67,19 @@
 <script>
     import getCollectionFilter from '@/composable/getCollectionFilter'
     import {ref, onMounted, computed, watch, watchEffect} from 'vue'
+    import {useStore} from 'vuex'
     import _ from 'lodash'
     export default {
         props: ['id'],
         components:{
         },
         setup(props) {
+
+            const store = useStore()
+            const isAdmin = computed(()=>store.getters['user/getIsAdmin']);
+            const isTeacher = computed(()=> store.getters['user/getIsTeacher']);
+
+
             const loadCollapsible = ()=>{
                 $(document).ready(function(){
                     $('.collapsible').collapsible();
@@ -111,7 +122,7 @@
                 }
             })
 
-            return {lessons, errLesson,tags,sortLessons,isLoading,noData}
+            return {lessons, errLesson,tags,sortLessons,isLoading,noData,isAdmin,isTeacher}
         }
     }
 </script>

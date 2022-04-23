@@ -2,22 +2,22 @@
     <div class="files-wrapper">
         <Loading v-if="isLoading"/>
         <div class="files-list" v-else>
-            <div v-for="file in files" :key="file.id" class="file-card">
-
-                <a :href="file.link" target="_blank">
-                    <img class="file-img" :src="'../../../assets/png/file-'+file.from+'-'+file.type+'.png'">
-                    <p class="file-name">{{computedName(file.name)}}</p>
-                </a>
+            <div v-for="file in files" :key="file.id" class="file-card" @mouseenter="showTooltip(file)" @mouseleave="hideTooltip()">
+                <FileCard :file="file"/>
             </div>
 
         </div>
         <NoData :data="'files'" v-if="noData"/>
-
+        <div class="bottom">
+            <div :class="[{active : haveTooltip},'tooltip']">
+                <p>{{tooltip}}</p>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
-    import {projectAuth} from '@/firebase/config'
+    import FileCard from '@/components/Resource/FileCard.vue'
     import getCollectionFilter from '@/composable/getCollectionFilter'
     import getDoc from '@/composable/getDoc'
     import { computed, ref, watch, watchEffect } from 'vue';
@@ -25,7 +25,7 @@
     import { onBeforeRouteLeave } from 'vue-router'
     export default {
         props: ['name'],
-        components: {},
+        components: {FileCard},
         setup(props) {
 
 
@@ -48,9 +48,22 @@
                 
             })
 
-            const computedName = (name) => {
-                return name.toLowerCase() + '.'
+            //Show tooltip
+            const haveTooltip = ref(false);
+            const tooltip = ref(null)
+            const showTooltip = (file)=>{
+                if(!file.description){ // nếu rỗng
+                    tooltip.value = file.name
+                    haveTooltip.value = true;
+                }else{
+                    tooltip.value = file.description;
+                    haveTooltip.value = true;
+                }
             }
+            const hideTooltip = ()=>{
+                haveTooltip.value = false;
+            }
+
 
 //////////// PREVENT BACK TO RESOURCE
             onBeforeRouteLeave((to, from, next) => {
@@ -61,8 +74,8 @@
                 }
             })
 
-            return {files,error,
-                    computedName, isLoading,noData}
+            return {files,error,showTooltip,tooltip,hideTooltip,haveTooltip,
+                    isLoading,noData}
         }
     }
 </script>
@@ -140,6 +153,27 @@
             & a{
                 color: white;
             }
+        }
+    }
+    .bottom{
+        position:absolute;
+        bottom: 2.5rem;
+        right: 5rem;
+        display: flex; 
+        justify-content: space-between;
+        width: 86%;
+    }
+    .tooltip{
+        @include transition;
+        opacity: 0;
+        display: flex;
+        align-items: center;
+        color: $color-gray-dark;
+        font-size: 1.2rem;
+        padding: 0 0.5rem;
+        max-width: 80%;
+        &.active{
+            opacity: 1;
         }
     }
 </style>

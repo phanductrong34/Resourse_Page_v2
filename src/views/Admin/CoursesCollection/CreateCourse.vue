@@ -56,6 +56,7 @@
     import {useRouter} from 'vue-router'
     import {timestamp,projectFirestore} from '@/firebase/config'
     import setDoc from '@/composable/setDoc'
+    import {useStore} from 'vuex'
     export default {
         setup() {
             //SET UP FOR DROPDOWN INPUT
@@ -65,6 +66,7 @@
                 });
             })
 
+            const store = useStore();
             const router = useRouter();
             const {error : errSet, set} = setDoc("courses");
 
@@ -87,25 +89,18 @@
             }
 
             const handleSubmit = async()=>{
-                error.value = null;
-                //check có tồn tại courseID ấy chưa 
-                const res = await projectFirestore.collection("courses").doc(courseID.value).get();
-                if(res.exists){  // nếu tồn tại
-                    error.value = `${courseID.value} is already exists. Choose another one`
-                }else{
-                    const newCourse = {
-                        name: name.value,
-                        type: type.value,
-                        createdAt : timestamp()
-                    }
-                    await set(courseID.value,newCourse);
-                    if(!errSet.value){
-                        alert(`Create new course  succeed!`);
-                        router.push({name : "Courses"});
-                    }
+                const newCourse = {
+                    name: name.value,
+                    type: type.value,
+                    createdAt : timestamp()
                 }
-
-
+                const res = await store.dispatch('admin/addNewCourse',{
+                    courseID: courseID.value,
+                    newCourse: newCourse
+                })
+                if(res){
+                    router.push({name : "Courses"});
+                }
             }
 
             return {error,courseID,name,type,

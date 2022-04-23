@@ -13,19 +13,19 @@
 
                     <div class="row">
                         <div class="input-field col s12">
-                            <input id="new-fullname" type="text" class="validate" v-model="fullname">
+                            <input id="new-fullname" type="text" class="validate" v-model="fullname" required>
                             <label class="active"  for="new-fullname">Full name</label>
                         </div>
                     </div>   
                     <div class="row">
                         <div class="input-field col s12">
-                            <input id="new-phone" type="text" class="validate" v-model="phone">
+                            <input id="new-phone" type="text" class="validate" v-model="phone" required>
                             <label class="active"  for="new-phone">Phone</label>
                         </div>
                     </div>  
                     <div class="row">
                         <div class="input-field col s12">
-                            <input id="new-password" type="password" class="validate" v-model="password">
+                            <input id="new-password" type="password" class="validate" v-model="password" required>
                             <label class="active"  for="new-password">New Password</label>
                         </div>
                     </div>  
@@ -53,6 +53,7 @@
     import {projectAuth} from '@/firebase/config'
     import updateDoc from '@/composable/updateDoc'
     import {useRouter} from 'vue-router'
+    import { useToast } from "vue-toastification";
 
     export default {
         setup(){
@@ -60,6 +61,7 @@
             const userData = computed(()=> store.getters['user/getUserData'] || null)
 
             const router = useRouter();
+            const toast = useToast();
             const {error :errUpdate, update} = updateDoc("students");
 
             const error = ref(null);
@@ -70,8 +72,12 @@
             const handleSubmit = (async()=>{
                 error.value= null;
                 errUpdate.value = null;
-
-                projectAuth.currentUser.updatePassword(password.value)
+                if(fullname.value.length > 30){
+                    error.value ="Are you trying to spam :)))";
+                }else if(isNaN(phone.value) &&  phone.value.length < 10 && phone.value.length > 11){ 
+                    error.value = "Invalid phone number format"
+                }else{
+                    projectAuth.currentUser.updatePassword(password.value)
                     .then(()=>{
                         if(!errUpdate.value && !error.value){
                             //console.log("handle sublmit") 
@@ -79,15 +85,20 @@
                                 fullname: fullname.value,
                                 phone: phone.value
                             }).then(()=>{
-                                alert("Update your info success!");
+                                toast.success("Update new info success!");
+                                // thêm cả vào user data ở store
+                                store.dispatch('user/updateNameAndPhone',{phone: phone.value, fullname: fullname.value});
                                 router.push({name: 'User'});
                             })
                         }
                     })
                     .catch((err)=>{
-                        //console.log("🚀 ~ file: NewUser.vue ~ line 65 ~ err", err.message)
+                        console.log("🚀 ~ file: NewUser.vue ~ line 65 ~ err", err.message)
                         error.value = err.message;
                     })
+
+                }
+
             })
 
 //////////// PREVENT BACK TO Welcome

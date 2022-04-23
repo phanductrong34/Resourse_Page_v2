@@ -10,7 +10,6 @@
             <form class="works-form" @submit.prevent="handleSubmit">
                 <button class="works-button">Upload Homework {{lesson.number}}</button>
             </form>
-            <div class="error-message center works-error" v-if="error"> {{error}}</div>
             <img class="works-bg" src="@/assets/png/assigment.svg" alt="">
         </div>
         <div class="works-container bottom">
@@ -18,7 +17,7 @@
                 <h4 class="submit-title">Your Submission</h4>
                 <div @click="toggleEdit" :class="[{active : isEditting},'submit-btn']">Edit</div>
             </div>
-            <div class="works-overflow"  v-if="currentWorks.length">
+            <div class="works-overflow"  v-if="currentWorks.length" @wheel.prevent="scrollHori($event)" ref="scrollContainer">
                 <div class="works-list">
                     <div v-for="(work,index) in currentWorks" :key="index" :class="[{active : isEditting},'overlay']">
                         <WorkCard :work="work"/>
@@ -33,7 +32,7 @@
 </template>
 
 <script>
-    import {ref,computed,watchEffect,watch} from 'vue'
+    import {ref,computed,watchEffect,watch, onMounted} from 'vue'
     import Timecode from 'timecode-boss'
     import {useStore} from 'vuex'
     import {Cloudinary} from 'cloudinary-core'
@@ -41,6 +40,7 @@
     import NoData from '@/components/Base/NoData.vue'
     import WorkCard from '@/components/Work/WorkCard.vue'
     import { useToast } from "vue-toastification";
+
     export default {
         props:['lesson','hasWork'],
         components: {NoData,WorkCard},
@@ -61,7 +61,6 @@
                 const loadWorks = store.getters['works/getWorks'](lessonNumber);
                 if(loadWorks){
                     currentWorks.value = [...loadWorks];
-                    console.log(currentWorks.value);
                 }
             })
             
@@ -73,7 +72,6 @@
                 uploadPreset: 'preset_1'}, (error, result) => { 
                     uploadResult.value = null;
                     if (!error && result && result.event === "success") { 
-                    console.log('Done! Here is the image info: ', result.info); 
                     uploadResult.value = result.info;
                     }
                 }
@@ -104,6 +102,7 @@
                         number: props.lesson.number,
                         workDuration: styleDuration(uploadResult.value.frame_rate,uploadResult.value.nb_frames),
                         downloadUrl:`https://res.cloudinary.com/umaster/video/upload/fl_attachment/${uploadResult.value.path}`
+
                     })
                     context.emit('toggleHasWork',true);
                 }
@@ -127,7 +126,31 @@
                     toast.info('Delete homework cancel');
                 }
             }
-            return{handleSubmit,link,homeworkURL,currentWorks,toggleEdit,isEditting,deleteWork}
+
+
+
+            ////HORIZONTAL SCROLL cho all
+            const cardWidth = 316
+            const scrollContainer = ref(null);
+            const  scrollAmount = ref(0);
+            const scrollHori = (event)=>{
+                if(event.deltaY >0 && scrollAmount.value <= scrollContainer.value.offsetWidth ){ //lăn xuống ==> đi tiến
+                    scrollContainer.value.scrollTo({
+                            top: 0,
+                            left: Math.max(scrollAmount.value += cardWidth ),
+                            behavior: 'smooth'
+                    });
+                }else if(event.deltaY < 0 && scrollAmount.value > 0){  // đi lùi
+                    scrollContainer.value.scrollTo({
+                            top: 0,
+                            left: Math.max(scrollAmount.value -= cardWidth ),
+                            behavior: 'smooth'
+                    });
+
+                }
+            }
+
+            return{handleSubmit,link,homeworkURL,currentWorks,toggleEdit,isEditting,deleteWork,scrollContainer,scrollHori}
         }
     }
 </script>
@@ -263,7 +286,7 @@
             left: 0;
             &::-webkit-scrollbar-track{
                 border-radius: 10px;
-                background-color: #00000028;
+                background-color: #00000000;
             }
             &::-webkit-scrollbar{
                 width: 12px;
@@ -271,14 +294,14 @@
             }
             &::-webkit-scrollbar-thumb{
                 border-radius: 10px;
-                background-color: #ffffff48;
+                background-color: #ffffff00;
             }
         }
         &-list{
             height: 100%;
             width: 100rem;
             display: flex;
-            flex-wrap: wrap;
+            flex-flow: row nowrap;
             margin-top: 2.8rem;
             & > * {
                 margin-right: 1rem;
@@ -333,7 +356,7 @@
             pointer-events:all;
             cursor: pointer;
             position: absolute;
-            bottom: 0.8rem;
+            bottom: 3.3rem;
             right: 0.8rem;
             z-index: 100;
             @include transition;

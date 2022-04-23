@@ -17,6 +17,7 @@
     "materialize-css": "^1.0.0-rc.2",
     "qs": "^6.10.1",
     "timecode-boss": "^4.5.0",
+    "tooltip-me": "^2.0.3",
     "vue": "^3.0.0-0",
     "vue-router": "^4.0.0-0",
     "vue-star-rating": "^2.1.0",

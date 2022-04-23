@@ -1,10 +1,12 @@
 import { createStore } from 'vuex'
-import {projectFirestore,timestamp,FieldValue} from '@/firebase/config'
+import {projectFirestore,timestamp,FieldValue,projectFunctions} from '@/firebase/config'
 import getDoc from '@/composable/getDoc'
 import getCollectionFilter from '@/composable/getCollectionFilter'
 import useCollection from '@/composable/useCollection'
 import updateDoc from '@/composable/updateDoc'
+import setDoc from '@/composable/setDoc'
 import removeDoc from '../composable/removeDoc'
+import removeDocsFilter from '@/composable/removeDocsFilter'
 import _ from 'lodash'
 import { useToast } from "vue-toastification";
 const toast = useToast()
@@ -18,12 +20,16 @@ const moduleUser = {
     namespaced: true,
     state: {
       isAdmin: false,
+      isTeacher: false,
       currentUser: null,
       userData: null,
     },
     getters:{
       getIsAdmin(state){
         return state.isAdmin
+      },
+      getIsTeacher(state){
+        return state.isTeacher
       },
       getCurrentUser(state){
         return state.currentUser;
@@ -53,13 +59,18 @@ const moduleUser = {
       }
     },
     actions: {
-      async updateUserData({state,commit},{user,isAdmin}){    
+      updateNameAndPhone({state},{phone,fullname}){
+        state.userData.phone = phone;
+        state.userData.fullname = fullname;
+      },
+      async updateUserData({state,commit},{user,isAdmin,isTeacher}){    
         // update user and admin state
         commit('changeUser',user);
-        commit('changeAdmin',isAdmin);
+        state.isAdmin = isAdmin;
+        state.isTeacher = isTeacher;
         
         let collection = null;
-        isAdmin ? collection = "admins" : collection = "students" 
+        (isAdmin || isTeacher) ? collection = "admins" : collection = "students" 
         
         const {data , error, load} = getDoc(collection);
         await load(user.uid);
@@ -124,7 +135,7 @@ const moduleLesson = {
     },
   },
   mutations:{
-    resetList(state){
+    resetLesson(state){
       state.list = [];
       state.unlockList = [];
     },
@@ -137,12 +148,12 @@ const moduleLesson = {
 
   },
   actions:{
-    resetList({commit}){
-      commit('resetList');
+    resetLesson({commit}){
+      commit('resetLesson');
     },
     //lấy list lesson cùng có courseID của user, và unlock list ở class user đang học
     async firstLoadLesson({commit,rootGetters,state}){
-      commit('resetList');
+      commit('resetLesson');
 
       const courseID = rootGetters['user/getCourseID']
     
@@ -260,7 +271,7 @@ const moduleClass = {
         commit("setCurrentClass",data.value);
       }
     },
-    resetCourse({commit}){
+    resetClass({commit}){
       commit('resetClass');
     }
   }
@@ -305,6 +316,9 @@ const moduleWorks = {
     }
   },
   actions: {
+    resetWorks({commit}){
+      commit('resetWorks');
+    },
     async firstLoadWorks({rootGetters,commit}){
       commit('resetWorks');
       const studentID = rootGetters['user/getCurrentUser'].uid;
@@ -314,9 +328,6 @@ const moduleWorks = {
       if(works.value.length){
         commit('setWorks',works.value);
       }
-    },
-    resetWorks({commit}){
-      commit('resetWorks');
     },
     //payload = {inputURL, number}
     async uploadWork({commit,rootGetters}, {videoUrl,thumbnailUrl, workSize, workName, workDuration, publicId, number,downloadUrl}){
@@ -330,6 +341,8 @@ const moduleWorks = {
         publicId,
         downloadUrl,
         studentNickname:rootGetters['user/getUserData'].nickname,
+        studentFullName:rootGetters['user/getUserData'].fullname,
+        avaRef: rootGetters['user/getUserData'].avaRef,
         studentID: rootGetters['user/getCurrentUser'].uid,
         classID: rootGetters['user/getClassID'],
         courseID: rootGetters['user/getCourseID'],
@@ -346,7 +359,11 @@ const moduleWorks = {
           works: FieldValue.arrayUnion(res.id)
         })
 
+        // thêm work mới này vào studentWorks module để cập nhật ở trang classroom
+        // commit('studentWorks/pushWork',{...newWork, id: res.id, createdAt: 'Just now'},{root : true})
+
         //toast thành công ở đây
+        toast.clear();
         toast.success("Upload Homework succesfully");
         return newWork;
       }else{
@@ -357,7 +374,7 @@ const moduleWorks = {
 
     },
 
-    async deleteWork({state,rootGetters},{workID,studentID}){
+    async deleteWork({state,rootGetters,commit},{workID,studentID}){
   
       //xóa ở collection work
       const {remove, error: err1} = removeDoc("works");
@@ -382,7 +399,13 @@ const moduleWorks = {
   
       // thành công thì xóa ở state offline array worklist
       state.workList = state.workList.filter(work => work.id !== workID);
+
+      // và xóa  ở trường studentWorks + studentsList trong module studentWorks
+      const data = {workID,studentID} // phải làm thế này vì commit ở module khác chỉ cho phép 1 biến đc truyền
+      // commit('studentWorks/deleteWork',data, {root: true});
+      toast.clear();
       toast.success(`Delete homework successfully!!`);
+      // 
     }
 
   },
@@ -391,23 +414,48 @@ const moduleWorks = {
 
 }
 
+// để lưu dữ liệu ở trang classroom
 const moduleStudentWorks = {
   namespaced: true,
   state:{
-    studentList:[],
-    studentWorks:{
-      //"studentID":[work1, work2,work3]
-    },
-    allWorks:[]
+    studentList:[], // [student1, student2, student3]
+    studentWorks:{}, //"studentID": [work1, work2]
+    allWorks:[]  // [work1, work2],
   },
   getters:{
   },
   mutations:{
-    pushWorks(state,studentID,works){
-      state.studentWorks[studentID] = works;
+    pushWork(state,work){
+      const index = state.studentList.findIndex(student => student.id == work.studentID);
+      if(index >0) {
+        state.studentList[index].works.push(work.id);
+      }
+      state.studentWorks[work.studentID].push(work);
+      state.allWorks.push(work);
+    },  
+    deleteWork(state,data){
+      const workID = data.workID;
+      const studentID = data.studentID;
+      const index1 = state.studentList.findIndex(student => student.id == studentID); // tìm ra học sinh có bài tập ấy
+      const index2 = state.studentWorks.findIndex(work => work.id == workID); // tìm ra bài tập ấy trong studentWorks
+      const index3 = state.allWorks.findIndex(work => work.id == workID);
+      if(index1 > 0){
+        state.studentList[index1].works =  state.studentList[index1].works.splice(index1,1);
+      }
+      if(index2 > 0){
+        state.studentWorks[studentID] = state.studentWorks[studentID].splice(index2,1)
+      }
+      if(index3 > 0){
+        state.allWorks.splice(index3,1);
+      }
     }
   },
   actions:{
+    resetStudentWorks({state}){
+      state.studentList = []
+      state.studentWorks = []
+      state.allWorks=[] 
+    },
     async getWorks({state},{studentID}){
       const works = state.studentWorks[studentID]
       if(!works){
@@ -430,7 +478,6 @@ const moduleStudentWorks = {
         await load("works","classID",classID);
         if(dataArray.value.length){
           state.allWorks = dataArray.value;
-          //console.log("🚀 ~ file: index.js ~ line 388 ~ state.allWorks", state.allWorks)
           return dataArray.value
         }else return null;
       }else{
@@ -472,6 +519,412 @@ const moduleImages = {
     }
   }
 }
+
+const moduleAdmin = {
+  namespaced: true,
+  state:{
+    classWorks:{}, //"mt1.1":[work1,work2,..],
+    classStudents:{}, //"mt1.1": [student1, student2],
+    activeStudentID: null,
+    activeClassID: null,
+
+  },
+  getters:{
+    getClassWorks: (state)=>(classID)=>{
+      if(state.classWorks[classID]){
+        return state.classWorks[classID];
+      }else{
+        return null;
+      }
+    },
+    getStudentsFromClass: (state) => (classID)=>{
+      if(!state.classStudents[classID]){  // nhận null(chưa load), nhận [] (laod rồi nhưng rỗng), [student, student2] nếu có
+        return null
+      }else if(state.classStudents[classID].length == 0){
+        return []
+      }else{
+        return state.classStudents[classID];
+      }
+    },
+    getActiveStudentID(state){
+      return state.activeStudentID;
+    }
+
+  },
+  mutations:{
+    setActiveStudentID(state,newID){
+      state.activeStudentID = newID;
+    }
+  },
+  actions:{
+    resetAdmin({state}){
+      state.classWorks = {};
+      state.classStudents = {};
+      state.activeStudentID = null;
+      state.activeClassID = null;
+    },
+    async loadClassWorks({state},{classID}){
+      const {dataArray : classWorks, error, load} = getCollectionFilter();
+      await load("works","classID",classID);
+      if(error.value){ // nếu có lỗi
+        toast.error("Load Class Works Failed");
+        console.log(error.value);
+        return null;
+      }else if(classWorks.value.length == 0){   // nếu không lỗi nhưng ko có bài
+        state.classWorks[classID] = [];
+        return 0;
+      }else{  // không lỗi và có bài
+        state.classWorks[classID] = classWorks.value;
+        return classWorks.value;
+      }
+    },
+
+    //fetch students thuộc trong 1 lớp và lưu lại owr dajgn array
+    async loadStudentsClass({state},{classID}){
+      const {dataArray : students, error, load} = getCollectionFilter();
+      await load("students","classID",classID);
+      if(!error.value){ //nếu fetch không lỗi 
+        if(students.value.length == 0){ // ko lỗi những không có data
+          state.classStudents[classID] = [];
+          return 0;
+        }else{
+          state.classStudents[classID] = students.value;
+          return students.value;
+        }
+      }
+    },
+
+    async deleteWork({state},{workID,studentID,classID}){
+  
+      /////////////xóa ở collection work
+      const {remove, error: err1} = removeDoc("works");
+      await remove(workID);
+      if(err1.value){
+        console.log(err1.value);
+        toast.error('Delete homework failed');
+        return null;
+      }
+  
+      //xóa ở student works array bằng cách update lại field, fiter ra
+      const {update, error: err2} = updateDoc('students')
+      await update(studentID,{
+        works: FieldValue.arrayRemove(workID)
+      })
+      if(err1.value){
+        console.log(err2.value);
+        toast.error('Delete homework failed');
+        return null;
+      }
+      
+      // thành công thì xóa ở state offline array worklist
+      state.classWorks = state.classWorks[classID].filter(work => work.id !== workID);
+      //xóa offline ở trường works trong student
+      const index = state.classStudents[classID].findIndex(student => student.id == studentID)
+      state.classStudents[classID][index].works =state.classStudents[classID][index].works.filter(id => id !== workID);
+      toast.clear();
+      toast.success(`Delete homework successfully!!`);
+    },
+
+    // thêm học viên mới ở auth, lấy id ở auth trả về thêm ở firestore và offline và classStudent
+    async addNewStudent({state}, {newStudents,activeClassID,activeCourseID,defaultPass}){  //input là array
+      const {error, set: setStudentDoc} = setDoc("students")
+      const createUser = projectFunctions.httpsCallable("createUser");
+      toast.info(`Adding new students to class ${activeClassID}...`);
+    //format lại 
+      const newStudentsArray = newStudents.map((student,index) => {
+        return {...student,
+                classID: activeClassID,
+                courseID: activeCourseID,
+                fullname: "",
+                works: [],
+                phone: "",
+                avaRef:`ava/ava-(${Math.ceil(Math.random()*50)}).svg`,
+                createdAt: timestamp(),
+                isNewUser: true,
+            };
+      });
+    // loop qua array mới tạo tk cho user và lấy id set lên firestore, rồi set vào cuối classStudents[activeClassID] offline 
+      newStudentsArray.forEach(async(newStudent)=>{
+        const resCreate = await createUser({email: newStudent.email, password: defaultPass})
+        if(resCreate.data){
+          const uid = resCreate.data.uid;
+          await setStudentDoc(uid,newStudent);
+          state.classStudents[activeClassID].push({...newStudent, id: uid});
+          toast.clear();
+          toast.success(`Adding successfully ${newStudent.nickname} successfully !`);
+        }else{
+          toast.clear();
+          toast.error(`Email ${newStudent.email} has existed in another class`)
+        }
+      });
+    },
+
+    /* tìm work ở firestore và xóa hết trước
+    xóa học viên, xóa cả tk ở auth, 
+    xóa doc ở firestore cả student 
+    xóa offline cả classWorks,classStudents, 
+    đổi lại activeStudent vè đầu*/
+    async deleteStudent({state},{studentID, classID}){
+      toast.info("Delete student and works...");
+      const {error: errWorks, remove : removeWorks} = removeDocsFilter();
+      const {error : errStudent, remove: removeStudent} = removeDoc("students");
+      const deleteUser = projectFunctions.httpsCallable("deleteUser");
+
+      removeWorks("works","studentID",studentID);
+      removeStudent(studentID);
+      await deleteUser({uid: studentID});
+      if(!errWorks.value && !errStudent.value){
+        state.classWorks[classID] = state.classWorks[classID].filter(work => work.studentID !== studentID);
+        state.classStudents[classID] = state.classStudents[classID].filter(student => student.id !== studentID);
+        toast.clear();
+        toast.success("Delete student successfully!");
+      }else{
+        toast.clear();
+        toast.error("Delete student failed!");
+        console.log(errWorks.value,errStudent.value);
+      }
+
+
+    },
+
+
+    //update ở fireStore và offline classStudent + classWorks là xong
+    async updateStudent({state},{studentID,classID,newData}){
+      const {error : errUpdate, update} = updateDoc("students");
+      await update(studentID,newData);
+      if(!errUpdate.value){
+        //update thông tin ở student đang đổi
+        const idx1 = state.classStudents[classID].findIndex(stu => stu.id == studentID);
+        state.classStudents[classID][idx1] = {
+          ...state.classStudents[classID][idx1],
+          fullname: newData.fullname,
+          nickname: newData.nickname,
+          phone: newData.phone
+        } 
+        //update thông tin ở các work trùng với student đang update
+        state.classWorks[classID].forEach((work,index) => {
+          if(work.studentID == studentID){
+            state.classWorks[classID][index].fullname = newData.fullname;
+            state.classWorks[classID][index].nickname = newData.nickname;
+            state.classWorks[classID][index].phone = newData.phone;
+          }
+        })
+
+        toast.clear();
+        toast.success("Update student successfully!");
+
+      }else{
+        toast.clear();
+        toast.error("Update student failed");
+      }
+    },
+
+    async addNewLesson({state}, {newLesson}){
+        if(newLesson.tags.length == 0){
+          toast.error("You must have at least 1 tag");
+          return false;
+        }else{
+            //check có tồn tại trong courseID ấy có number ấy chưa 
+            const res = await projectFirestore.collection("lessons")
+                .where('courseID','==',newLesson.courseID)
+                .where('number','==',newLesson.number)
+                .get();
+            
+            if(res.size){  // nếu tồn tại lesson có number ấy rồi
+              toast.error(`Lesson ${newLesson.number} is already exists. Choose another one`)
+              return false;
+            }else{
+                const {error : errAdd, addDoc} = useCollection("lessons");
+                await addDoc(newLesson);
+                if(!errAdd.value){
+                    toast.clear();
+                    toast.success(`Create new lesson successfully!`);
+                    
+                    return true;
+                }else{
+                  toast.error("Create new lesson failed");
+                  return false;
+                }
+            }
+
+        }
+    } ,
+    
+    async updateLesson({state},{lessonID, updatedLesson,lessonNumber}){
+      if(updatedLesson.tags.length == 0){
+          toast.error("You must have at least 1 tag");
+          return false
+      }else{
+          const {error: errUpdate, update} = updateDoc("lessons");
+          await update(lessonID,updatedLesson);
+          if(!errUpdate.value){
+              toast.clear();
+              toast.success(`Update lesson ${lessonNumber} successfully!`);
+              return true;
+          }else{
+              toast.error('Update lesson failed');
+              return false
+          }
+
+      }
+
+    },
+
+    async deleteLesson({state},{lessonID,lessonNumber}){
+      const {error: errRemove, remove} = removeDoc("lessons");
+      await remove(lessonID);
+      if(!errRemove.value){
+          toast.clear();
+          toast.success(`Delete lesson ${lessonNumber} succeessfully`);
+          return true
+      }else{
+        toast.error(`Delete lesson ${lessonNumber} failed`)
+        return false
+      }
+    },
+
+
+    async addNewCourse({state},{courseID,newCourse}){
+        //check có tồn tại courseID ấy chưa 
+        const res = await projectFirestore.collection("courses").doc(courseID).get();
+        if(res.exists){  // nếu tồn tại
+            toast.error(`${courseID} is already exists. Choose another one`)
+            return false
+        }else{
+            const {error : errSet, set} = setDoc("courses");
+            await set(courseID,newCourse);
+            if(!errSet.value){
+                toast.clear();
+                toast.success(`Create new course successfully!`);
+            }else{
+              toast.error(`Create new course failed`);
+              return false
+            }
+        }
+    },
+
+    async updateCourse({state},{courseID,updatedCourse}){
+      const {error :errUpdate, update} = updateDoc("courses");
+        await update(courseID,updatedCourse);
+        if(!errUpdate.value){
+            toast.clear();
+            toast.success(`Update course ${courseID} successfully!`);                        
+            return true;
+        }else{
+          toast.error('Update course failed - 1');
+        }
+    },
+
+    async deleteCourse({state},{courseID}){
+  // xóa online trước theo thứ tự: work -> student -> class -> lesson -> course mà có courseID trùng
+  
+      //batch delete works
+          const {error: errWorks, remove: removeWorks} = removeDocsFilter();
+          removeWorks("works","courseID",courseID);
+          if(errWorks.value){
+            toast.error("Delete course failed! - 2");
+            return false
+          }
+        
+      //load tất cả student có course id ấy để xóa tài khoảng trong auth
+          const deleteMultiUser = projectFunctions.httpsCallable("deleteMultiUser");
+          const {dataArray: filterStudents , error : errGetStudent, load : loadStudent} = getCollectionFilter();
+          await loadStudent("students","courseID",courseID);
+          if(filterStudents.value.length){
+            const ids = filterStudents.value.map(student => student.id);
+            deleteMultiUser({ids:ids});
+          }
+          
+          const {error: errRemove, remove: removeDocs} = removeDocsFilter();
+        //batch delete students
+          removeDocs("students","courseID",courseID);
+          if(errRemove.value){
+            toast.error("Delete course failed! - 3");
+            return false;
+          }
+
+      // batch delete class
+          // lấy ds các class có courseID ấy về để xóa offline trong object classWorks và classStudents
+          const {dataArray: classes , error : errGetClasses, load : loadClasses} = getCollectionFilter();
+          await loadClasses("classes","courseID",courseID);
+          classes.value.forEach(classi => {
+            delete state.classStudents[classi.id];
+            delete state.classWorks[classi.id];
+          })
+
+          removeDocs("classes","courseID",courseID);
+          if(errRemove.value){
+            toast.error("Delete course failed! - 4");
+            return false;
+          }
+      //batch delete lesson
+          removeDocs("lessons","courseID",courseID);
+          if(errWorks.value){
+            toast.error("Delete course failed! - 5");
+            return false
+          }
+
+
+      //delete course
+          const {remove: removeCourse, error: errCourse} = removeDoc("courses");
+          await removeCourse(courseID);
+          if(errCourse.value){
+            toast.error("Delete course failed! - 6");
+            return false;
+          }else{
+            // ko cần xóa offline vì mất lớp rồi thì cũng khỏi hiện 
+            toast.clear();
+            toast.success("Delete course successfully!")
+            return true;
+          }
+
+    },
+
+    async createFile({state},{newFile}){
+      if(newFile.from.length == 0 || newFile.type.length == 0){
+        toast.error("You must choose both from and type");
+        return false;
+      }
+      const {error : errCreate, addDoc} = useCollection("files")
+      await addDoc(newFile);
+      if(!errCreate.value){
+        toast.clear();
+        toast.success(`Create new ${newFile.folder} successfully!`);
+        return true
+      }else{
+        toast.error( `Create ${newfile.folder} failed`);
+        return false;
+      }
+    },
+    
+    async updateFile({state},{fileID,updatedFile,folder}){
+      const {error : errUpdate, update} = updateDoc("files")
+      await update(fileID,updatedFile);
+      if(!errUpdate.value){
+          toast.clear();
+          toast.success(`Update ${folder} successfully!`);
+          return true;
+      }else{
+        toast.error( `Update ${folder} failed`);
+        return false;
+      }
+    },
+
+    async deleteFile({state},{fileID,folder}){
+      const {remove, error} = removeDoc("files");
+      await remove(fileID);
+      if(!error.value){
+        toast.clear();
+        toast.success(`Delete ${folder} successfully!`);
+        return true
+      }else{
+        toast.error(`Delete ${folder} failed`);
+        return false;
+      }
+    }
+
+  }
+}
 export const store =  createStore({
   state: {
   },
@@ -486,6 +939,7 @@ export const store =  createStore({
     class: moduleClass,
     works: moduleWorks,
     studentWorks: moduleStudentWorks,
-    images: moduleImages
+    images: moduleImages,
+    admin: moduleAdmin
   }
 })

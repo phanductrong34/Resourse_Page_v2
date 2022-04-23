@@ -8,16 +8,16 @@
                 </a>
             </div>
             <div class="main-container">
-                <div class="user-info" v-if="userData">
+                <div class="user-info" v-if="userData" @click="clearToast">
                     <div class="user-ava"><Image class="user-img" :refUrl="userData.avaRef"/></div>
                     <div class="user-title">
                         <div class="user-nickname">{{userData.nickname}}</div>
-                        <div class="user-content" v-if="isAdmin">{{userData.role}}</div>
+                        <div class="user-content" v-if="isAdmin || isTeacher">{{userData.role}}</div>
                         <div v-else>{{userData.classID}}</div>
                     </div>
                 </div>
                 <div class="user-info" v-else><Loading/></div>
-                <ul class="router" v-if="isAdmin">
+                <ul class="router" v-if="isAdmin || isTeacher">
                     <li><router-link :to="{name: 'ClassManage'}">Class Manage</router-link></li>
                     <li><router-link :to="{name: 'Courses'}">Courses</router-link></li>
                     <li><router-link :to="{name: 'Resource'}">Resource</router-link></li>
@@ -60,6 +60,7 @@ import useLogout from '@/composable/useLogout'
 import {useRouter} from 'vue-router'
 import { useStore } from 'vuex'
 import _ from 'lodash'
+import { useToast } from "vue-toastification";
 
  
 export default {
@@ -143,20 +144,31 @@ export default {
 
         const userData = computed(()=> store.getters['user/getUserData']);
         const isAdmin = computed(()=> store.getters['user/getIsAdmin']);
+        const isTeacher = computed(()=> store.getters['user/getIsTeacher'])
         
         //load router tỚi slide
 
         const router = useRouter();
         const logingOut = async()=>{
-            console.log("yoyoyoyoyoyoyoyoyoyoo")
            await logout();
             if(!error.value){
                 store.dispatch['user/resetUser'];
                 store.dispatch['works/resetWorks']
+                store.dispatch['lessons/resetLesson']
+                store.dispatch['courses/resetCourse']
+                store.dispatch['class/resetClass']
+                store.dispatch['studentWorks/resetStudentWorks']
+                store.dispatch['admin/resetAdmin']
+ 
             }
         }
 
-        return {redBallMode,logingOut,isAdmin,userData}
+        const toast = useToast();
+        const clearToast = ()=>{
+            toast.clear();
+        }
+
+        return {redBallMode,logingOut,isAdmin,isTeacher,userData,clearToast}
     }
 }
 </script>
@@ -206,7 +218,8 @@ export default {
         padding: 1rem 1rem 1rem 1rem;
         background-color: white;
         border-radius: 1rem;
-        @include card-shadow
+        @include card-shadow;
+        cursor: pointer;
     }
     &-ava{
         position:relative;

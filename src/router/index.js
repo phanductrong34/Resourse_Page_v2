@@ -80,6 +80,23 @@ const requiredAdmin =(to,from,next) =>{
   if(isAdmin) next();
   else next({name: from.name});
 }
+
+const requiredAdminOrTeacher = (to,from,next) =>{
+  const isAdmin = store.getters['user/getIsAdmin'];
+  const isTeacher = store.getters['user/getIsTeacher'];
+  if(isAdmin || isTeacher) next();
+  else next({name: from.name});
+}
+const requiredExactUser = (to,from,next) =>{
+  const user = store.getters['user/getCurrentUser'];
+  const isAdmin = store.getters['user/getIsAdmin'];
+  if (to.params.id == user.uid || isAdmin ) next();
+  else{
+      next({name: from.name});
+      toast.warning("You don't have permission to access this page");
+  }
+}
+
 const routes = [
   {
     path: '/',
@@ -105,7 +122,7 @@ const routes = [
     name: 'Admin',
     component: ()=>import('../views/Admin/Admin.vue'),
     redirect: '/admin/classes',
-    beforeEnter: requiredAdmin,
+    beforeEnter: requiredAdminOrTeacher,
     meta: {
       requiredAuth: true //tức là phải có kiểm tra auth mới đc vào
     },
@@ -115,14 +132,14 @@ const routes = [
         name: 'ClassManage',
         component:() => import('../views/Admin/ClassManage.vue'),
         meta: {requiredAuth: true},
-        beforeEnter: requiredAdmin,
+        beforeEnter: requiredAdminOrTeacher,
       },
       {
         path: 'courses',
         name: 'Courses',
         component: () => import('../views/Admin/Courses.vue'),
         meta: {requiredAuth: true},
-        beforeEnter: requiredAdmin,
+        beforeEnter: requiredAdminOrTeacher,
         children:[
           {
             path: 'lessons/:id',
@@ -130,7 +147,7 @@ const routes = [
             component: () => import('../views/Admin/CoursesCollection/Lessons.vue'),
             props:true,
             meta: {requiredAuth: true},
-            beforeEnter: requiredAdmin,
+            beforeEnter: requiredAdminOrTeacher,
           },
           {
             path: 'createcourse',
@@ -153,7 +170,7 @@ const routes = [
             component: () => import('../views/Admin/CoursesCollection/UpdateCourse.vue'),
             props: true,
             meta: {requiredAuth: true},
-            beforeEnter: requiredAdmin
+            beforeEnter: requiredAdminOrTeacher
           },
           {
             path: 'updatelesson/:id',
@@ -161,7 +178,7 @@ const routes = [
             component: () => import('../views/Admin/CoursesCollection/UpdateLesson.vue'),
             props: true,
             meta: {requiredAuth: true},
-            beforeEnter: requiredAdmin
+            beforeEnter: requiredAdminOrTeacher
           },
         ]
       },
@@ -170,7 +187,7 @@ const routes = [
         name: 'Resource',
         component:()=>import('../views/Admin/Resource.vue'),
         meta: {requiredAuth: true},
-        beforeEnter: requiredAdmin,
+        beforeEnter: requiredAdminOrTeacher,
         children:[
           {
             path: 'folders/:name',
@@ -178,7 +195,7 @@ const routes = [
             component: () => import('../views/Admin/ResourceCollection/Folders.vue'),
             props:true,
             meta: {requiredAuth: true},
-            beforeEnter: requiredAdmin,
+            beforeEnter: requiredAdminOrTeacher,
             
           },
           {
@@ -195,7 +212,7 @@ const routes = [
             component: () => import('../views/Admin/ResourceCollection/UpdateFile.vue'),
             props: true,
             meta: {requiredAuth: true},
-            beforeEnter: requiredAdmin,
+            beforeEnter: requiredAdminOrTeacher,
           }
         ]
       },
@@ -204,7 +221,7 @@ const routes = [
         name: 'Teachers',
         component: () => import('../views/Admin/Teachers.vue'),
         meta: {requiredAuth: true},
-        beforeEnter: requiredAdmin,
+        beforeEnter: requiredAdminOrTeacher,
         children:[
           {
             path:'create',
@@ -219,7 +236,7 @@ const routes = [
             component: () => import('../views/Admin/TeachersForm/UpdateTeacher.vue'),
             props: true,
             meta: {requiredAuth: true},
-            beforeEnter: requiredAdmin,
+            beforeEnter:requiredExactUser,
           }
         ]
       }

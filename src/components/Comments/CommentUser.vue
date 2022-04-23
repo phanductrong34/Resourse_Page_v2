@@ -1,162 +1,117 @@
 <template>
     <div class="comment-user">
         <div class="comment-nav">
-            <h3>Works</h3>
-            <span :class="{active: activeNav == 'all'}" @click="activeNav = 'all'">all</span>
-            <span :class="{active: activeNav == 'each'}" @click="activeNav = 'each'">each</span>
+            <h3 @click="toggleEdit" v-if="isEditting">Edit</h3>
+            <h3  @click="toggleEdit" v-else>Works</h3>
+            <span :class="{active: !isEach}" @click="toggleEach(false)">all</span>
+            <span :class="{active: isEach}" @click="toggleEach(true)">each</span>
         </div>
 
-        <div class="comment-works overflowList" v-if="activeNav =='all'">
-            <Loading v-if="isLoadingAll"/>
-            <div :class="[{active: work.id == activeWork.id},'work-card']" v-for="work in formatedAllWorks" :key="work.id" v-if="activeWork">
-                <div :class="[{graded : work.score},'work-img']">
-                    <span>{{work.lessonNumber}}</span>
-                    <!-- <Image :refUrl="activeStudent.avaRef"/> -->
+        <div class="comment-works overflowList" v-if="!isEach">
+            <Loading v-if="isLoading"/>
+            <div class="card-container" v-if="activeClassWorks">
+                <div v-for="(work,index) in activeClassWorks" :key="index" :class="[{active : isEditting},'overlay']">
+                    <WorkCard :work="work"/>
+                    <div v-if="isEditting && isAdmin" class="overlay-icon" @click="deleteWork(work)"><i class="material-icons icon">delete_forever</i></div>
                 </div>
-                <div class="work-content">
-                    <div class="work-owner">{{work.studentNickname}}</div>
-                    <div class="work-created">{{work.createdAt}}</div>
-                </div>
-                <a :href="work.workURL" target="_blank">
-                    <div class="work-link">
-                        <i class="material-icons">chevron_right</i>
+            </div>
+            <NoData :data="'works'" v-if="!isLoading && activeClassWorks == 0"/>
+        </div>
+
+        <div class="comment-works overflowList" v-else>
+            <Loading v-if="isLoading"/>
+            <div class="card-container" v-if="activeStudentWorks">
+                    <div v-for="(work,index) in activeStudentWorks" :key="index" :class="[{active : isEditting},'overlay']">
+                        <WorkCard :work="work"/>
+                        <div v-if="isEditting && isAdmin" class="overlay-icon" @click="deleteWork(work)"><i class="material-icons icon">delete_forever</i></div>
                     </div>
-                </a>
             </div>
-            <NoData :data="'works'" v-if="noDataAll"/>
+            <NoData :data="'works'" v-if="!isLoading && activeStudentWorks == 0"/>
         </div>
-
-        <div class="comment-works overflowList" v-if="activeNav =='each'">
-            <Loading v-if="isLoadingEach"/>
-            <div :class="[{active: work.id == activeWork.id},'work-card']" v-for="work in formatedEachWorks" :key="work.id" v-if="activeWork">
-                <div class="work-img">
-                    <span>{{work.lessonNumber}}</span>
-                    <!-- <Image :refUrl="activeStudent.avaRef"/> -->
-                </div>
-                <div class="work-content">
-                    <div class="work-owner">{{work.studentNickname}}</div>
-                    <div class="work-created">{{work.createdAt}}</div>
-                </div>
-                <a :href="work.workURL" target="_blank">
-                    <div class="work-link">
-                        <i class="material-icons">chevron_right</i>
-                    </div>
-                </a>
-            </div>
-            <NoData :data="'works'" v-if="noDataEach"/>
-        </div>
-
-        <!-- <div class="comment-form">
-            <div class="active-score row">
-                <div class="col s10">
-                    <star-rating v-model:rating="rating" :increment="0.5" :star-size="32"/>
-                </div>
-                <button class="active-btn col s2 waves-effect waves-light btn btn-small red darken-4" @click="submitScore">rate</button>
-            </div>
-            <div class="active-comment">
-                <div class="active-chatlist">
-
-                </div>
-                <form @submit.prevent="sendComment" class="active-form row">
-                    <input class="col s10" type="text">
-                    <button class="active-btn col s2 waves-effect waves-light btn btn-small red darken-4">send</button>
-                </form>
-            </div>
-        </div> -->
     </div>
 </template>
 
 <script>
     import {computed, ref,watchEffect} from 'vue'
-    import {formatDistanceToNow} from 'date-fns'
-    import getCollectionFilter from '@/composable/getCollectionFilter'
-    import getDoc from '@/composable/getDoc'
+    import {useStore} from 'vuex'
     import StarRating from 'vue-star-rating'
     import _ from 'lodash'
+    import WorkCard from '@/components/Work/WorkCard.vue'
     export default {
         components:{
-            StarRating
+            StarRating,
+            WorkCard
         },
-        props:['activeStudentID','activeClassID'],
+        props:['activeClassID'],
         setup(props) {
-            const activeNav = ref('each');
-            const {dataArray : allWorks, error : errAll, load: loadAllWorks} = getCollectionFilter();
-            const {dataArray : eachWorks, error : errEach, load: loadActiveWork} = getCollectionFilter();
-            const noDataAll = ref(false);
-            const isLoadingAll = ref(false);
-            const noDataEach = ref(false);
-            const isLoadingEach = ref(false);
-            
-            const activeStudent = computed(()=>{
-                const {data , error, load} = getDoc("students");
-                load(props.activeStudentID);
-                return data.value || null;
-            })
+            const store = useStore();
+            const isAdmin = computed(()=>store.getters['user/getIsAdmin']);
+            const isTeacher = computed(()=> store.getters['user/getIsTeacher']);
 
-            //star
-            const activeWork = ref(null);
-            const rating = ref(0);
             
-            // watch activeNav đổi mode, watch activeStudent đổi
+            const isEach = ref(false);
+            const isLoading = ref(false);
+            const activeStudentID = computed(()=> store.getters['admin/getActiveStudentID']);
+
+            const activeClassWorks = ref(null); // là array
+            const activeStudentWorks = computed(()=>{  //react theo activeClassWorks
+                if(activeClassWorks.value == null) return null;
+                else if(activeClassWorks.value == 0) return 0;
+                else return activeClassWorks.value.filter(work => work.studentID == activeStudentID.value);
+            })
+            
+
+            // watch effect load laji activeClassWorks mỗi khi activeClassID đổi
             watchEffect(async()=>{
-                if(activeNav.value == 'all'){
-                    allWorks.value = [];
-                    eachWorks.value = null;
-                    activeWork.value = null;
-                    rating.value = 0;
-                    noDataAll.value = false;
-                    isLoadingAll.value = true;
-                    
-                    await loadAllWorks("works","classID",props.activeClassID);
-                    isLoadingAll.value = false;
-                    if(!allWorks.value.length){ //nếu load về array rỗng
-                        noDataAll.value = true;
-                    }else{
-                        noDataAll.value = false;
-                        activeWork.value = allWorks.value[0];
-                        rating.value = activeWork.value.score;
+                //reset biến
+                activeClassWorks.value = null;
+                isLoading.value = true;
+
+                const classWorks = store.getters['admin/getClassWorks'](props.activeClassID);
+                if(classWorks == null){ // không lấy đc ở kho offline
+                    const res = await store.dispatch('admin/loadClassWorks',{classID: props.activeClassID});
+                    if(!res){ // không nhảy vào th fetch lỗi = null hoặc =0 do rỗng
+                        activeClassWorks.value = res;
                     }
-                }else if(activeNav.value == 'each'){
-                    eachWorks.value = [];
-                    noDataEach.value = false;
-                    activeWork.value = null;
-                    rating.value = 0;
-                    isLoadingEach.value = true;
+                    isLoading.value = false;
+                }else if(classWorks == 0){ // lấy đc nhưng rỗng
+                    isLoading.value = false;
+                    activeClassWorks.value = null;
+                }else{   // lấy được và không rỗng 
 
-                    await loadActiveWork("works","studentID",props.activeStudentID);
-                    isLoadingEach.value = false;
-                    if(!eachWorks.value.length){
-                        noDataEach.value = true;
-                    }else{ 
-                        noDataEach.value = false;
-                        activeWork.value = eachWorks.value[0];
-                        rating.value = activeWork.value.score;
-                    }
-                }    
-                
-            })
-            const formatedAllWorks = computed(()=>{
-                return allWorks.value.map(work => {
-                    let time = formatDistanceToNow(work.createdAt.toDate());
-                    return {...work, createdAt: time};
-                })
-            })
-            const formatedEachWorks = computed(()=>{
-                return eachWorks.value.map(work => {
-                    let time = formatDistanceToNow(work.createdAt.toDate());
-                    return {...work, createdAt: time};
-                })
+                    isLoading.value = false;
+                    activeClassWorks.value = classWorks;
+                }
             })
 
-            //submit score
-            const submitScore = (()=>{
-                console.log(rating.value)
-            })
+            // thay đổi mode each all 
+            const toggleEach = (mode) =>{
+                isEach.value = mode;
+            }
 
 
 
-            return {activeNav,formatedAllWorks,formatedEachWorks,noDataAll,noDataEach,activeStudent,isLoadingAll,isLoadingEach,
-                    rating,activeWork,submitScore};
+            /////////////////toggle mode edit work
+            const isEditting = ref(false);
+            const toggleEdit = ()=>{
+                if(!isAdmin.value) return false;
+                isEditting.value = !isEditting.value
+            }
+            //xóa works
+            // khi xóa class, xóa course, xóa student cũng phải xóa cái này
+            const deleteWork = async(work) =>{
+                const check = confirm(`Do you want to delete homework ${work.workName}`);
+                if(check){
+                    await store.dispatch('admin/deleteWork',{workID: work.id,studentID: work.studentID, classID: work.classID});
+
+                }else{
+                    toast.info('Delete homework cancel');
+                }
+            }
+
+
+            return {isEach,isLoading,isEditting,toggleEdit,isAdmin,isTeacher,
+                    activeClassWorks,activeStudentWorks,toggleEach,deleteWork};
         }
     }
 </script>
@@ -168,7 +123,7 @@
     top: 50%;
     right: 0;
     transform: translate(19%,-50%);
-    padding: 2rem 3rem 2rem 0rem;
+    padding: 2rem 3rem 0rem 0rem;
     background-color: white;
     @include card-shadow;
     height: 100%;
@@ -183,8 +138,14 @@
         justify-content: center;
         align-items: flex-end;
         font-size: 1.5rem;
+        margin-bottom: 2rem;
         & > h3{
             margin-right: 1.5rem;
+            cursor: pointer;
+            @include transition;
+            &:hover{
+                transform: scale(1.05);
+            }
         }
         & span{ 
                 transform: translateY(-0.2rem);
@@ -223,116 +184,54 @@
     &-works{
         display: flex;
         flex-direction: column;
-        height: 60%;
+        height: 100%;
         padding: 2rem 2rem 0rem 2rem;
         overflow-y: auto;
-    }
-    &-form{
-        height: 40%;
-        padding: 0 2rem 1rem 2rem;
-        margin-top: auto;
+        border-radius: 2.5rem;
     }
 }
 
-.work{
-    &-card{
-        display: flex;
-        width: 100%;
-        padding: 0.8rem 1rem 0.8rem 1rem;
-        background-color: white;
-        @include card-shadow;
-        border-radius: 0.8rem;
-        align-items: center;
-        margin-bottom: 1rem;
-        position: relative;
+.card-container{
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    align-items: flex-start;
+}
+
+// overlay xóa bài
+.overlay{
+    position: relative;
+    z-index: 5;
+    filter: brightness(1);
+    @include transition;
+    display: flex;
+    align-self: flex-start;
+    &.active{
+        filter: brightness(0.8) saturate(1.3);
+        pointer-events: none;
+    }
+    &-icon{
+        pointer-events:all;
         cursor: pointer;
+        position: absolute;
+        bottom: 3.3rem;
+        right: 0.8rem;
+        z-index: 100;
         @include transition;
+        width: 3.1rem;
+        height: 3.1rem;
+        border-radius: 0.6rem;
+        background-color: $color-primary;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         &:hover{
             transform: scale(1.05);
         }
-        z-index: 1;
-        &.active{
-            &::after{
-                content: "";
-                position: absolute;
-                width: 101%;
-                height: 103%;
-                top: -2px;
-                left: -2px;
-                z-index: -2;
-                border-radius: 0.8rem;
-                border: 3px solid $color-primary;
-            }
+        &>*{
+            color: white;
+            font-size: 2rem;
         }
-    }
-    &-img{
-        width: 2.8rem;
-        height: 2.8rem;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 50%;
-        color: white;
-        margin-right: 1rem;
-        font-size: 1.5rem;
-        background-color: $color-gray-light-1;
-        &.graded{
-            background-color: $color-primary;
-        }
-    }
-    &-content{
-
-    }
-    &-owner{
-        font-size: 1.3rem;
-    }
-    &-created{
-
-    }
-    &-link{
-        position: absolute;
-        top: 0;
-        right: 0;
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 0.5rem;
-        border-radius: 0 0.8rem 0.8rem 0;
-        color: black;
-        @include transition;
-        &:hover{
-            cursor: pointer;
-            background-color: $color-gray-light-2;
-        }
-    }
-}
-.active{
-    &-score{
-        display: flex;
-    }
-    &-star{
-
-    }
-    &-submit{
-
-    }
-    &-comment{
-
-    }
-    &-chatlist{
-
-    }
-    &-form{
-        & input{
-
-        }
-    }
-    &-btn{
-        font-family: "Averta Semi Bold";
-        border-radius: 5rem;
-        text-transform: lowercase;
-        font-size: 1rem;
     }
 }
 

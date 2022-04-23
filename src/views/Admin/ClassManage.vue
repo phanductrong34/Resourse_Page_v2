@@ -9,12 +9,12 @@
                                 @activateClass="activeClass = $event"/>
             </div>
 
-            <StudentSection :activeClassID="activeClassID" :activeCourseID="activeCourseID" :activeStudentID="activeStudentID"  @activateStudentID="activeStudentID = $event"/>
+            <StudentSection :activeClassID="activeClassID" :activeCourseID="activeCourseID"/>
             <LessonSection :activeCourseID="activeCourseID" :activeClassID="activeClassID"/>
 
         </div>
         <div class="right-section">
-            <CommentUser :activeStudentID="activeStudentID" :activeClassID="activeClassID"/>
+            <CommentUser :activeClassID="activeClassID"/>
         </div>
     </div>
 
@@ -79,19 +79,10 @@ export default {
             }
         })
 
-        /////////////// 4. ACTIVE STUDENT ID ////////////////////// 
-        watchEffect(async()=>{
-            activeStudentID.value = null;
-            if(activeClassID.value !== null){
-                const res = await projectFirestore.collection("students").where("classID", "==", activeClassID.value).orderBy('createdAt','desc').limit(1).get();
-                activeStudentID.value = res.docs[0].id;
-                console.log("🚀 ~ file: ClassManage.vue ~ line 88 ~ activeStudentID.value", activeStudentID.value)   
-            }
-        })
 
         return {
             activeCourse,activateCourse,activeClass,
-            filterClasses,activeClassID,activeCourseID,activeStudentID,
+            filterClasses,activeClassID,activeCourseID
         }
 
     }

@@ -1,9 +1,19 @@
 <template>
     <div class="lesson-slide">
         <div v-if="slideURL" class="slide-container">
-            <iframe class="slide-frame" :src="slideURL+'/embed'" 
+            <!-- <iframe class="slide-frame" :src="slideURL+'/embed'" 
                     width="576" height="420" scrolling="no" frameborder="0" 
                     webkitallowfullscreen mozallowfullscreen allowfullscreen>
+            </iframe> -->
+            <iframe
+              class="slide-frame"
+              :src=" slideURL + '/embed?start=false&loop=false&delayms=3000'"
+              frameborder="0"
+              width="1920"
+              height="1080"
+              allowfullscreen="true"
+              mozallowfullscreen="true"
+              webkitallowfullscreen="true">
             </iframe>
         </div>
         <Loading v-else />
@@ -68,7 +78,7 @@ import { onBeforeRouteLeave } from 'vue-router'
 }
 .slide-frame{
     width: 100%;
-    height: 108%;
+    height: 100%;
 
 }
 </style>

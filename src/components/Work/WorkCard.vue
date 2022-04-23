@@ -2,7 +2,7 @@
     <div class="workCard">
         <div class="top">
             <div class="buttonContainer">
-                <div class="but ava"><Image class="ava-img" :refUrl="userData.avaRef" /></div>
+                <div class="but ava"><Image class="ava-img" :refUrl="work.avaRef" /></div>
                 <div class="but link" @click="copyPath"><i class="material-icons icon">insert_link</i></div>
                 <a :href="work.downloadUrl" target="_blank" class="but down" @click="download"><i class="material-icons icon">file_download</i></a>
             </div>
@@ -13,7 +13,7 @@
         <div class="bottom">
             <div class="lesson">{{work.lessonNumber}}</div>
             <div class="info">
-                <div class="info-name">{{userData.fullname}}</div>
+                <div class="info-name">{{work.studentFullName}}</div>
                 <div class="info-time">{{dateStyle}}</div>
             </div>
             <div class="size">{{work.workDuration}}</div>
@@ -39,7 +39,6 @@
             //Lấy data của học viên
             const store = useStore();
             const toast = useToast();
-            const userData = computed(()=>store.getters['user/getUserData']);
             
             const thumbStyle = (thumbnailUrl)=>{
                 return `background-image: url(${thumbnailUrl})`;
@@ -74,7 +73,7 @@
                 console.log(showModal.value);
             }
 
-            return {userData,thumbStyle,userData,dateStyle,copyPath,toggleModal,showModal}
+            return {thumbStyle,dateStyle,copyPath,toggleModal,showModal}
         }
     }
 </script>
@@ -86,7 +85,7 @@
     border-radius: 1rem;
     padding: 0.6rem;
     padding-bottom: 0;
-
+    margin-bottom: 2.5rem;
 }
 .top{
     display: flex;

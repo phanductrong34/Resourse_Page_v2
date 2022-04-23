@@ -3,24 +3,25 @@
         <div class="teachers-display">
             <div class="teachers-nav">
                 <h3>Teachers</h3>
-                <button class="btn-create btn waves-effect waves-light red darken-4">
+                <button class="btn-create btn waves-effect waves-light red darken-4" v-if="isAdmin">
                     <router-link :to="{name: 'CreateTeacher'}">create</router-link>
                 </button>
             </div>
             <div class="teacher-container" v-if="admins">
                 <div class="main-container">
-                    <h4 class="title">Main Teachers</h4>
-                    <TeacherList :admins="filterTeachers" @update="updateTeacher" @remove="removeTeacher"/>
+                    <h4 class="title">Admin</h4>
+                    <TeacherList v-if="filterAdmins.length" :admins="filterAdmins" @update="updateTeacher" :currentID="currentID" :isAdmin="isAdmin"/>
+                    <div v-else><NoData :data="'teachers'"/></div>
                 </div>
                 <div class="mentor-container">
-                    <h4 class="title">Mentors</h4>
-                    <TeacherList :admins="filterMentors" @update="updateTeacher" @remove="removeTeacher"/>
+                    <h4 class="title">Teachers</h4>
+                    <TeacherList v-if="filterTeachers.length" :admins="filterTeachers" @update="updateTeacher" :currentID="currentID" :isAdmin="isAdmin"/>
+                    <div v-else><NoData :data="'teachers'"/></div>
                 </div>
             </div>
             <div v-else>
                 <Loading/>
             </div>
-            <div v-if="err1" class="error-message">{{err1}}</div>
         </div>
 
         <div class="form">
@@ -35,28 +36,27 @@ import {ref,computed} from 'vue'
 import {useRouter} from 'vue-router'
 import TeacherList from '@/components/Teachers/TeacherList.vue'
 import getCollectionRT from '@/composable/getCollectionRT'
-import removeDoc from '@/composable/removeDoc'
-import removeUser from '@/composable/removeUser'
-import useLogout from "@/composable/useLogout"
-import {projectAuth,projectFunctions} from '@/firebase/config'
 import {useStore} from 'vuex'
+import getUser from '@/composable/getUser'
+import { useToast } from "vue-toastification";
 export default {
     components: {
         TeacherList
     },
     //fetch all admin
     setup() {
+        const toast = useToast()
         const {documents : admins, error} = getCollectionRT("admins");
 
         //Filtering teacher and mentor
-        const filterTeachers = computed(()=>{
+        const filterAdmins = computed(()=>{
             return admins.value.filter((ad) => {
-                return ad.role == "Teacher"
+                return ad.role == "admin"
             })
         })
-        const filterMentors = computed(()=>{
+        const filterTeachers = computed(()=>{
             return admins.value.filter((ad) => {
-                return ad.role == "Mentor"
+                return ad.role == "teacher"
             })
         })
 
@@ -64,50 +64,21 @@ export default {
         //handle button click from teacher list
         const router = useRouter();
         const store = useStore();
-        const {logout, error: errLogout} = useLogout();
-        const isAdmin = computed(()=> store.getters['user/getIsAdmin']);
-        const currentUserID = computed(()=> store.getters['user/getCurrentUser'].uid);
+        const {user,isAdmin,isTeacher} = getUser();
+        const currentID = computed(()=> user.value.uid);
 
         const updateTeacher = (adminID)=>{   //adminID là id của thẻ teacher truyền lên
-            router.push({name: 'UpdateTeacher',params : {id:adminID}});
-
-
-        }
-
-        const {error: err1, remove} = removeDoc("admins")
-        const deleteUser = projectFunctions.httpsCallable('deleteUser')
-
-        const removeTeacher = async(params)=>{
-            const currentUid = currentUserID.value;
-            if(currentUid == params.id){  // tức tự xóa chính mình
-                const checkDelete = confirm("You are about to delete yourself. Continue?");
-                if(checkDelete){
-                        //remove doc trước đã, vì vẫn còn đăng nhập
-                        await remove(params.id);
-                        if(!err1.value){
-                            await deleteUser({uid: params.id});
-                            logout();
-                            router.push({name: 'Welcome'})
-                        }
-                }
-            }else{
-                const checkDeleteOther = confirm("This is not your account. Continue delete?");
-                if(checkDeleteOther){
-                        //remove doc trước đã, vì vẫn còn đăng nhập
-                        await remove(params.id);
-                        if(!err1.value){
-                            await deleteUser({uid: params.id});
-                            router.push({name: "Teachers"});
-                            alert("remove other teacher succeed!")
-                        }
-                }
+            if(user.value.uid == adminID || isAdmin.value){
+                router.push({name: 'UpdateTeacher',params : {id:adminID}});
             }
-
+            else{
+                toast.error("You don't have permission to access this page");
+                router.push({name:'Teachers'})
+            }
         }
 
-        
-        return {admins, error, filterTeachers, filterMentors,
-                updateTeacher,removeTeacher,err1}
+        return {admins, error, filterTeachers, filterAdmins,isTeacher,isAdmin,isTeacher,currentID,
+                updateTeacher}
       
     }
 }

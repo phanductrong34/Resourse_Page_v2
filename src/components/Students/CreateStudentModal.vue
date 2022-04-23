@@ -33,11 +33,11 @@
                             {{newStudents.length + studentCount + 1}}
                         </div>
                         <div class="input-field col s3">
-                            <input id="studentmodal-nickname" type="text" class="validate" v-model="curNickname" placeholder="nickname" ref="nicknameTag"
+                            <input id="studentmodal-nickname" type="text" class="validate" v-model="curNickname" placeholder="Nickname - Tab" ref="nicknameTag"
                                         @keypress.enter.prevent="addStudent">
                         </div>
                         <div class="input-field col s6">
-                            <input id="studentmodal-email" type="email" class="validate" v-model="curEmail" placeholder="email" ref="emailTag"
+                            <input id="studentmodal-email" type="email" class="validate" v-model="curEmail" placeholder="Email - Alt" ref="emailTag"
                                         @keydown.alt.prevent="addGmail" 
                                         @keypress.enter.prevent="addStudent">
                         </div>
@@ -65,9 +65,7 @@
 
 <script>
 import { computed, ref} from "vue"
-import {timestamp} from '@/firebase/config'
-import setDoc from '@/composable/setDoc'
-import {projectFunctions} from '@/firebase/config'
+import {useStore} from 'vuex'
 
 export default {
     emits:['closeModal','reload'],
@@ -75,7 +73,7 @@ export default {
     setup(props,context) {
 
         // ref
-
+        const store = useStore();
         const error = ref("");
         const curNickname = ref("");
         const curEmail = ref("");
@@ -140,36 +138,15 @@ export default {
             newStudents.value.splice(index,1);
         }
 
-        const {error : errSetStudent, set: setStudentDoc} = setDoc("students")
-        const createUser = projectFunctions.httpsCallable("createUser");
-
-        const handleSubmit = () =>{
+        const handleSubmit = async() =>{
             error.value ="";
             if(newStudents.value.length !== 0){
-                const newStudentsArray = newStudents.value.map((student,index) => {
-                    return {...student,
-                            classID: props.activeClassID,
-                            courseID: props.activeCourseID,
-                            fullname: "",
-                            works: [],
-                            phone: "",
-                            avaRef:`ava/ava-(${Math.ceil(Math.random()*50)}).svg`,
-                            createdAt: timestamp(),
-                            isNewUser: true,
-                        };
+                await store.dispatch('admin/addNewStudent', {
+                    newStudents: newStudents.value,
+                    activeClassID: props.activeClassID,
+                    activeCourseID: props.activeCourseID,
+                    defaultPass: defaultPass.value,
                 });
-                //console.log(newStudentsArray);
-                newStudentsArray.forEach(async(newStudent)=>{
-                    // Tạo ra trên Auth bằng admin để nó trả lại uid
-                    const resCreate = await createUser({email: newStudent.email, password: defaultPass.value})
-                    const uid = resCreate.data.uid;
-    
-                    //dùng uid để set lên firestore
-                    await setStudentDoc(uid,newStudent);
-                });
-                //đánh đông lên StudentSection để nó load lại
-                // context.emit('reload');
-                //resetField và đóng modal 
                 resetField();
                 closeCreateModal();
             }else{

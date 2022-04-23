@@ -10,7 +10,7 @@
                         <h5 class="teacher-name">{{ad.name}}</h5>
                         <p class="teacher-role">{{ad.role}}</p>
                     </div>
-                    <div class="teacher-button" @click="$emit('update',ad.id)">
+                    <div v-if="isExactUser(ad.id)" class="teacher-button" @click="$emit('update',ad.id)">
                         <i class="material-icons">edit</i>
                     </div>
                 </div>
@@ -21,10 +21,6 @@
                             <div class="teacher-email">Email: {{ad.email}}</div>
                             <div class="teacher-phone">Phone Number: {{ad.phone}}</div>
                         </div>
-                        <div class="teacher-remove">
-                            <button class="waves-effect waves-light btn red darken-4"
-                                    @click="$emit('remove',{password:ad.password,id:ad.id})"><i class="material-icons left">delete_forever</i>Remove {{ad.role}}</button>
-                        </div>
                     </div>
                 </div>
             </li>
@@ -34,14 +30,21 @@
 
 <script>
     import {onMounted} from 'vue'
+    
     export default {
-        props: ['admins'],
+        props: ['admins','currentID','isAdmin'],
         setup(props) {
             onMounted(() => {
                 $(document).ready(function(){
                     $('.collapsible').collapsible();
                 });
             });
+            
+            const isExactUser = (id)=> {
+                if(props.currentID == id || props.isAdmin) return true;
+                else return false; 
+            }
+            return {isExactUser}
         }
     }
 </script>

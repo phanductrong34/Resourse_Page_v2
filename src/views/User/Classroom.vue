@@ -4,11 +4,17 @@
             <h3 class="class-title">My Class.</h3>
             <div v-if="classID" class="class-id">{{classID}}</div>
         </div>
+        <div class="ava" v-if="activeStudent">
+            <Image class="ava-image" :refUrl="activeStudent.avaRef"/>
+        </div>
         <div class="class-list overflowList" v-if="studentList">
             <UserStudentList 
                 :students="studentList"
                 :activeStudentID="activeStudentID" 
                 @showWorks="showWorks"/>
+            <div class="info-box">
+                <StudentInfoCard :student="activeStudent" />
+            </div>
         </div>
         <div class="class-works">
             <div class="works-header row" v-if="lessonCount">
@@ -27,7 +33,7 @@
             <!-- each -->
             <div class="result-filter" v-if="isEach">
 
-                    <div class="works-overflow"  v-if="currentWorksList">
+                    <div class="works-overflow"  v-if="currentWorksList" @wheel.prevent="scrollHori2($event)" ref="scrollContainer2">
                         <div class="works-list">
                             <div v-for="(work,index) in currentWorksList" :key="index">
                                 <WorkCard :work="work"/>
@@ -45,7 +51,7 @@
             <!-- all -->
             <div class="result-filter" v-else>
                     
-                    <div class="works-overflow"  v-if="allWorkList">
+                    <div class="works-overflow"  v-if="allWorkList" @wheel.prevent="scrollHori($event)" ref="scrollContainer">
                         <div class="works-list">
                             <div v-for="(work,index) in allWorkList" :key="index">
                                 <WorkCard :work="work"/>
@@ -70,8 +76,9 @@
     import {useStore} from 'vuex'
     import {ref,computed,onMounted, watchEffect,watch} from 'vue'
     import _ from 'lodash'
+    import StudentInfoCard from '../../components/Classes/StudentInfoCard.vue'
     export default {
-        components: {UserStudentList,WorkCard},
+        components: {UserStudentList,WorkCard,StudentInfoCard},
         setup(props) {
             const initSelect = ()=>{
                 $(document).ready(function(){
@@ -175,8 +182,49 @@
             }
 
 
+            ////HORIZONTAL SCROLL cho all
+            const cardWidth = 316
+            const scrollContainer = ref(null);
+            const  scrollAmount = ref(0);
+            const scrollHori = (event)=>{
+                if(event.deltaY >0 && scrollAmount.value <= scrollContainer.value.offsetWidth ){ //lăn xuống ==> đi tiến
+                    scrollContainer.value.scrollTo({
+                            top: 0,
+                            left: Math.max(scrollAmount.value += cardWidth ),
+                            behavior: 'smooth'
+                    });
+                }else if(event.deltaY < 0 && scrollAmount.value > 0){  // đi lùi
+                    scrollContainer.value.scrollTo({
+                            top: 0,
+                            left: Math.max(scrollAmount.value -= cardWidth ),
+                            behavior: 'smooth'
+                    });
+
+                }
+            }
+
+            ////HORIZONTAL SCROLL cho each
+            const scrollContainer2 = ref(null);
+            const  scrollAmount2 = ref(0);
+            const scrollHori2 = (event)=>{
+                if(event.deltaY >0 && scrollAmount2.value <= scrollContainer2.value.offsetWidth ){ //lăn xuống ==> đi tiến
+                    scrollContainer2.value.scrollTo({
+                            top: 0,
+                            left: Math.max(scrollAmount2.value += cardWidth ),
+                            behavior: 'smooth'
+                    });
+                }else if(event.deltaY < 0 && scrollAmount2.value > 0){  // đi lùi
+                    scrollContainer2.value.scrollTo({
+                            top: 0,
+                            left: Math.max(scrollAmount2.value -= cardWidth ),
+                            behavior: 'smooth'
+                    });
+
+                }
+            }
+
             return{classID,lessonCount,studentList,activeStudentID,noData,currentWorksList,activeStudent,showWorks,
-                    isEach,noDataAll,allWorkList}
+                    isEach,noDataAll,allWorkList,scrollContainer,scrollHori,scrollContainer2,scrollHori2,scrollAmount}
         }
     }
 </script>
@@ -242,7 +290,7 @@
         }
         &-overflow{
             position: absolute;
-            width: 100%;
+            width: 104%;
             height: 90%;
             overflow-x: auto;
             overflow-y: hidden;
@@ -288,6 +336,24 @@
             background-color: $color-orange;
             border-radius: 10rem;
             color: white;
+        }
+    }
+
+    .info-box{
+        position: absolute;
+        top: 2.5rem;
+        right: 12%;
+        z-index: 98;
+    }
+    .ava{
+        position: absolute;
+        z-index: 99;
+        top: 2rem;
+        right: -5.5rem;
+        width: 16rem;
+        transform: rotate(-50deg);
+        &-image{
+            width: 100%;
         }
     }
 

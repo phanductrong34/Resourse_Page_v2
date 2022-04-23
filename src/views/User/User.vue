@@ -35,8 +35,6 @@ export default {
           store.dispatch('course/firstLoadCourse');
           store.dispatch('class/firstLoadClass');
           store.dispatch('works/firstLoadWorks');
-        //Listener
-          // store.dispatch('lessons/setListenerLessons');
 
         }
       })

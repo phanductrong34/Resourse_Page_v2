@@ -47,17 +47,21 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="input-field col s4">
+                    <div class="input-field col s3">
                         <input id="lesson-homework" type="text" class="validate" v-model="homeworkURL" required>
                         <label class="active"  for="lesson-homework">Homework URL</label>
                     </div>
-                    <div class="input-field col s4">
+                    <div class="input-field col s3">
                         <input id="lesson-playlist" type="text" class="validate" v-model="playlistURL" required>
                         <label class="active"  for="lesson-playlist">Youtube URL</label>
                     </div>
-                    <div class="input-field col s4">
+                    <div class="input-field col s3">
                         <input id="lesson-slide" type="text" class="validate" v-model="slideURL" required>
                         <label class="active"  for="lesson-slide">Slide URL</label>
+                    </div>
+                    <div class="input-field col s3">
+                        <input id="lesson-loop" type="text" class="validate" v-model="loopURL" required>
+                        <label class="active"  for="lesson-loop">Loop URL</label>
                     </div>
                 </div>                
                             
@@ -86,6 +90,7 @@
     import {timestamp,projectFirestore} from '@/firebase/config'
     import useCollection from '@/composable/useCollection'
     import getPhoto from '@/composable/getPhoto'
+    import {useStore} from 'vuex'
     export default {
         props: ['id'],
         setup(props) {
@@ -97,6 +102,7 @@
                 });
             })
 
+            const store = useStore();
             const router = useRouter();
             const {error : errAdd, addDoc} = useCollection("lessons");
             const {error :errPhoto,photoURL, loadPhotoURL} = getPhoto();
@@ -111,6 +117,7 @@
             const homeworkURL = ref("");
             const playlistURL = ref("");
             const slideURL = ref("");
+            const loopURL = ref("");
 
 
             const closeModal = ()=>{
@@ -127,6 +134,7 @@
                 homeworkURL.value = "";
                 playlistURL.value = "";
                 slideURL.value = "";
+                loopURL.value = "";
             }
 
             const resultImg = ref(null);
@@ -158,46 +166,27 @@
             };
 
             const handleSubmit = async()=>{
-                error.value = null;
-
-                if(tags.value.length == 0){
-                    error.value = "You must have at least 1 tag"
-                }else{
-                    //check có tồn tại trong courseID ấy có number ấy chưa 
-                    const res = await projectFirestore.collection("lessons")
-                        .where('courseID','==',props.id)
-                        .where('number','==',number.value)
-                        .get();
-                    
-                    if(res.size){  // nếu tồn tại lesson có number ấy rồi
-                        error.value = `Lesson ${number.value} is already exists. Choose another one`
-                    }else{
-                        const newLesson = {
-                            courseID: props.id,
-                            number : number.value,
-                            name: name.value,
-                            thumbnailRef : thumbnailRef.value,
-                            tags: tags.value,
-                            description : description.value,
-                            homeworkURL : homeworkURL.value,
-                            playlistURL : playlistURL.value,
-                            slideURL : slideURL.value,
-                            recordURL: "",
-                            createdAt : timestamp()
-                        }
-                        await addDoc(newLesson);
-                        if(!errAdd.value){
-                            alert(`Create new lesson succeed!`);
-                            router.push({name: "Lessons", params: {id: props.id}})
-                        }
-                    }
-
+                const newLesson = {
+                    courseID: props.id,
+                    number : number.value,
+                    name: name.value,
+                    thumbnailRef : thumbnailRef.value,
+                    tags: tags.value,
+                    description : description.value,
+                    homeworkURL : homeworkURL.value,
+                    playlistURL : playlistURL.value,
+                    slideURL : slideURL.value,
+                    loopURL: loopURL.value,
+                    createdAt : timestamp()
                 }
-
-
+                const res = await store.dispatch('admin/addNewLesson', {newLesson});
+                if(res){
+                    clearField();
+                    router.push({name: "Lessons", params: {id: props.id}})
+                }
             }
 
-            return {error, number, name, thumbnailRef,tags,selectedTag, description, homeworkURL, playlistURL, slideURL,
+            return {error, number, name, thumbnailRef,tags,selectedTag, description, homeworkURL, playlistURL, slideURL, loopURL,
                     closeModal,clearField,handleSubmit,checkPhoto,addTag,deleteTag,resultImg}
         }
     }

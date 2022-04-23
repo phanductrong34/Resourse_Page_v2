@@ -2,11 +2,19 @@
     <div class="lesson-detail">
         <div class="lesson-card">
             <div class="lesson-video">
-                <img class="lesson-recordThumb" :src="'/assets/png/wallpaper/wallpaper'+ lesson.number +'.png'" alt="">
-                <div class="lesson-noti">
-                    <p>{{noti}}</p>
-                </div>
-                <i class="lesson-icon material-icons">play_circle_outline</i>
+               <video
+                  class="lesson-recordThumb"
+                  autoplay="autoplay"
+                  loop
+                  muted
+                  :key="lesson.loopURL"
+                >
+                    <source v-if="lesson.loopURL"
+                      :src="lesson.loopURL"
+                      type="video/mp4"
+                    >
+                    <source v-else src="https://res.cloudinary.com/umaster/video/upload/v1630686044/LoopURL/in_t%C3%B4_gakfhb.mp4">
+                </video>
             </div>
             <div class="lesson-description">
                 <p>{{computedDescription}}</p>
@@ -26,16 +34,11 @@
     export default {
         props:['lesson'],
         setup(props) {
-            const recordURL = ref(null)
-            const noti = computed(()=>{
-                if(!recordURL.value) return 'Unavailable';
-                else return 'Available Now';
-            })
             const computedDescription = computed(()=>{
                 return props.lesson.description.substr(0,200)+ '...'
             })
 
-            return{noti,recordURL,computedDescription};
+            return{computedDescription};
         }
     }
 </script>
@@ -63,15 +66,12 @@
         overflow: hidden;
         position: relative;
         margin-bottom: 1rem;
-        &:hover .lesson-recordThumb{
-            filter: brightness(0.5) blur(2px);
-        }
     }
     &-recordThumb{
         width: 100%;
-        transform: scale(1.05);
-        filter: brightness(1) ;
-        @include transition;
+        transform: scale(1.04);
+        pointer-events: none;
+
     }
     &-noti{
         position: absolute;

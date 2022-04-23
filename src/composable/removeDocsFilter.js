@@ -22,7 +22,7 @@ const removeDocsFilter = () => {
             //(`Delete ${collection} has ${key} = ${value} completed`)
         }).catch(err => {
             error.value = err.message;
-            //console.log("🚀 ~ file: removeDocsFilter.js ~ line 26 ~ error.value", error.value)
+            console.log("🚀 ERROR BATCH DELETE",collection, error.value)
         })
     }
 

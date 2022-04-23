@@ -2,7 +2,7 @@
     <div class="course-nav overflowList">
         <div class="course-title">
             <h3 class="title center">Courses</h3>
-            <router-link :to="{name: 'CreateCourse'}">
+            <router-link :to="{name: 'CreateCourse'}" v-if="isAdmin">
                 <button class="button-create btn waves-effect waves-light red darken-4">add course</button>
             </router-link>
 
@@ -31,10 +31,15 @@
 <script>
     import {ref,computed} from 'vue'
     import {projectStorage} from '@/firebase/config'
+    import {useStore} from 'vuex'
     export default {
         
         props: ['courses',],
         setup(props,context) {
+            const store = useStore()
+            const isAdmin = computed(()=>store.getters['user/getIsAdmin']);
+            const isTeacher = computed(()=> store.getters['user/getIsTeacher']);
+
             //Handle active
             const activeIndex = ref(0)
             const activateCourse = (index)=> {
@@ -55,7 +60,7 @@
                 return `/assets/png/courseThumb-${type}.png`
                 // return `card/courseThumb-${type}.png`
             }
-            return {computedLength,loadPhoto,activateCourse,activeIndex}
+            return {computedLength,loadPhoto,activateCourse,activeIndex,isAdmin,isTeacher}
         }
     }
 </script>

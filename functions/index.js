@@ -3,8 +3,12 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 
+
 //data là 1 object ta tryền vào
 exports.addAdminRole = functions.https.onCall((data,context)=>{
+    if (context.auth.token.admin !== true){
+      return {error: "You are not admin"}
+    }
     // get user amd add custom claims (admin)
     return admin.auth().getUserByEmail(data.email).then((user)=>{
         return admin.auth().setCustomUserClaims(user.uid,{
@@ -20,15 +24,36 @@ exports.addAdminRole = functions.https.onCall((data,context)=>{
     })
 })
 
+//data là 1 object {email}
+exports.addTeacherRole = functions.https.onCall((data,context)=>{
+    if (context.auth.token.admin !== true){
+      return {error: "You are not admin"}
+    }
+    // get user amd add custom claims (admin)
+    return admin.auth().getUserByEmail(data.email).then((user)=>{
+        return admin.auth().setCustomUserClaims(user.uid,{
+            teacher: true
+        })
+    }).then(()=>{
+        return{
+            message: `Succees! ${data.email} has been created as teacher`
+        }
+    }).catch(err => {
+        return err;
+    })
+})
+
 
 //data  = {email: email.value,password: password.value}
-exports.createUser = functions.https.onCall((data) => {
+exports.createUser = functions.https.onCall((data,context) => {
+    if (context.auth.token.admin !== true){
+      return {error: "You are not admin"}
+    }
     return admin
     .auth()
     .createUser(data)
     .then((userRecord) => {
       // See the UserRecord reference doc for the contents of userRecord.
-      // console.log('Successfully created new user:', userRecord.uid);
       return {uid: userRecord.uid}
     })
     .catch((error) => {
@@ -38,7 +63,10 @@ exports.createUser = functions.https.onCall((data) => {
 
 
 //data  = {uid: "dsdf",email: email.value,password: password.value}
-exports.updateUser = functions.https.onCall((data)=>{
+exports.updateUser = functions.https.onCall((data,context)=>{
+    if (context.auth.token.admin !== true){
+      return {error: "You are not admin"}
+    }
     return admin
     .auth()
     .updateUser(data.uid, {
@@ -56,8 +84,11 @@ exports.updateUser = functions.https.onCall((data)=>{
   
 })
 
-//data = {uid : "sdfsdfsdf"}
-exports.deleteUser = functions.https.onCall((data)=>{
+//data = {uid : "sdfsdfsdf"}  xóa cả work của student này nữa nếu có 
+exports.deleteUser = functions.https.onCall((data,context)=>{
+    if (context.auth.token.admin !== true){
+      return {error: "You are not admin"}
+    }
     admin
     .auth()
     .deleteUser(data.uid)
@@ -70,72 +101,21 @@ exports.deleteUser = functions.https.onCall((data)=>{
   
 })
 
-
-// ta lấy user bằng hàm getUserByEmail, sau đó setCustomClaim cho nó là 1 object có data bất kì
-// có thể là premium = true cũng đc, input là email, output là message
-
-
-const {google} = require('googleapis');
-const path = require('path')
-const fs = require('fs')
-
-/*
-//data = {CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, REFRESH_TOKEN, filePath, fileName}
-exports.uploadVideo = functions.https.onCall((data) => {
-
-    const oauth2Client  = new google.auth.OAuth2(
-      data.CLIENT_ID,data.CLIENT_SECRET, data.REDIRECT_URI
-    )
-
-    const drive = google.drive({
-      version : "v3",
-      auth: oauth2Client
-    })
-
-    //upload
-    drive.files.create({
-        requestBody: {
-            name: data.fileName,
-            mimeType: 'video/mp4'
-            
-        },
-        media:{
-            mimeType: "video/mp4",
-            body: fs.createReadStream(filePath)
-        },
-    })
-    //lấy fileID để public link
-    .then(response => {  
-      console.log("upload-data: " + response.data);
-      const fileId = response.data.id;
-      
-      drive.permissions.create({
-        fileId : fileID,
-        requestBody : {
-            role : 'reader',
-            type : 'anyone',
-        }
+//data = {ids:[userid1, userid2, userid3]}
+exports.deleteMultiUser = functions.https.onCall((data,context)=>{
+  if (context.auth.token.admin !== true){
+    return {error: "You are not admin"}
+  }
+  data.ids.forEach(id=>{
+      admin
+      .auth()
+      .deleteUser(id)
+      .then(() => {
+        //console.log('Successfully deleted user');
       })
-
-    })
-    //lấy về link
-    .then(()=>{
-      drive.files.get({
-          fileId : fileID,
-          fields : "webViewLink, webContentLink"
-      })
-    })
-    // ==> link trả về đây
-    .then((result)=> {
-      return {data: result.data} 
-    })
-
-    // bắt toàn bộ lỗi
-    .catch (error =>{
-        console.log(error.message);
-    })
-
+      .catch((error) => {
+        console.log('Error deleting user:', error);
+      });
+  })
+  
 })
-*/
-
-

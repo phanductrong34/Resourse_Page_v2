@@ -20,6 +20,8 @@ import NoData from '@/components/Base/NoData.vue'
 import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
 import '@/styles/global.scss';
+
+
 //option for toast
 const option = {
     transition: "Vue-Toastification__fade",
@@ -52,20 +54,28 @@ projectAuth.onAuthStateChanged(async(_user) => {
         app.component('NoData',NoData);  // props: data
         // app.component('star-rating', VueStarRating.default)
         
-        app.use(store).use(router).use(Toast,option).mount('#app')
+        app
+        .use(store)
+        .use(router)
+        .use(Toast,option)
+        .mount('#app')
     }
 
     if(_user){
         // lấy id token và check admin
         let isAdmin = false;
+        let isTeacher = false;
         const idTokenResult = await _user.getIdTokenResult()
         if(idTokenResult.claims.admin){
             isAdmin = true;
-        } 
+        }else if(idTokenResult.claims.teacher){
+            isTeacher = true;
+        }
         //update lên store dữ liệu của ngườ dùng đang có
         store.dispatch('user/updateUserData',{
             user: _user,
-            isAdmin: isAdmin
+            isAdmin: isAdmin,
+            isTeacher:isTeacher
         });
     }else{
         store.dispatch('user/resetUser');

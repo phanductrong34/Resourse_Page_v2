@@ -1,13 +1,13 @@
 <template>
     <div class="student-list">
         <div :class="[{active: student.id == activeStudentID},'student-card']" 
-            @click="$emit('activateStudentID',student.id)"
+            @click="changeActiveStudent(student.id)"
             v-for="student in students" 
             :key="student.id">
             <div class="student-ava">
                 <div class="ava-container"><Image class="ava" :refUrl="student.avaRef"/></div>
             </div>
-            <div class="student-edit" @click="toggleModal(student.id)">
+            <div class="student-edit" @click="toggleModal(student)">
                 <i class="material-icons">edit</i>
             </div>
             <div class="student-nickname">{{computedName(student.nickname)}}</div>
@@ -17,15 +17,15 @@
             </div>
         </div>
 
-        <UpdateStudentModal :studentID="studentID"
-                            :showModal="showModalCreate" @closeModal="toggleModal(null)" 
-                            @updateCount="$emit('updateCount',$event)"/>
+        <UpdateStudentModal :student="updateStudent"
+                            :showModal="showModalCreate" @closeModal="toggleModal(null)"/>
     </div>
 </template>
 
 <script>
     import UpdateStudentModal from '@/components/Students/UpdateStudentModal'
-    import {ref} from 'vue'
+    import {useStore} from 'vuex'
+    import {ref,computed} from 'vue'
     export default {
         props: ['students','activeStudentID'],
         components:{
@@ -33,13 +33,15 @@
         },
         setup(props) {
             //set up modal control
-            const showModalCreate = ref(false);
-            const studentID = ref(null);
-            const toggleModal = (id)=> {
-                if(!id){    //đóng modal
+            const showModalCreate = ref(false);;
+            const store = useStore()
+            const updateStudent =  ref(null);
+
+            const toggleModal = (student)=> {
+                if(!student){    //đóng modal
                     showModalCreate.value = !showModalCreate.value;
-                }else{   //nạp ID vào và mở modal
-                    studentID.value = id;
+                }else{   //nạp student vào và mở modal
+                    updateStudent.value = student;
                     showModalCreate.value = !showModalCreate.value;
                 }
 
@@ -53,8 +55,12 @@
                 return name.replaceAll(/\s/g,'')+'.'
             }
 
-            return {computedSubmit,computedName,studentID,
-                    showModalCreate,toggleModal};
+
+            const changeActiveStudent = (studentID) =>{
+                store.commit('admin/setActiveStudentID',studentID);
+            }
+            return {computedSubmit,computedName,updateStudent,
+                    showModalCreate,toggleModal,changeActiveStudent};
         }
     }   
 </script>

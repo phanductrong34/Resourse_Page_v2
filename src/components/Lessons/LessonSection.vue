@@ -14,6 +14,7 @@
     import getDoc from '@/composable/getDoc'
     import updateDoc from '@/composable/updateDoc'
     import {computed, ref,watchEffect} from 'vue'
+    import {useToast} from 'vue-toastification'
 
     export default {
         props: ['activeClassID', 'activeCourseID'],
@@ -25,6 +26,7 @@
             const unlockLessons = ref([]);
             const isLoading = ref(null)
             const noData = ref(null)
+            const toast = useToast();
 
             const {data : activeClass, error : errClass, load: loadClass} = getDoc("classes")
             const {dataArray:lessons , error :errLesson, load: loadLesson} = getCollectionFilter();
@@ -65,11 +67,16 @@
                     await updateClass(props.activeClassID,{
                         unlockLessons : unlockLessons.value
                     })
+                    toast.clear()
+                    toast.warning(`Lock lesson ${number}`)
+
                 }else{
                     unlockLessons.value.push(Number(number))
                     await updateClass(props.activeClassID,{
                         unlockLessons : unlockLessons.value
                     })
+                    toast.clear()
+                    toast.success(`Unlock lesson ${number}`)
                 }
             }
 

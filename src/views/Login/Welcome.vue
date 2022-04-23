@@ -72,7 +72,7 @@
             
             const email = ref("");
             const password = ref("");
-            const {user,isAdmin} = getUser();  // dặt sẵn biến và khởi tạo 1 hàm onAuth ở đây đã để login hay logout gì nó cũng sẽ load lại user và check admin
+            const {user,isAdmin,isTeacher} = getUser();  // dặt sẵn biến và khởi tạo 1 hàm onAuth ở đây đã để login hay logout gì nó cũng sẽ load lại user và check admin
 
             const router = useRouter();
             const error =ref(null);
@@ -94,11 +94,11 @@
                             logout();
                         })
                     }else{ // nếu đã verified
-                        await store.dispatch('user/updateUserData',{user: user.value, isAdmin : isAdmin.value});
+                        await store.dispatch('user/updateUserData',{user: user.value, isAdmin : isAdmin.value, isTeacher: isTeacher.value});
                         //console.log("dispatch success", user.value, isAdmin.value);
                         //login thành công và ko ném ra bất cứ lỗi nào
                         if(!error.value){
-                            if(isAdmin.value){
+                            if(isAdmin.value || isTeacher.value) {
                                 router.push({name: 'ClassManage'});
                             }else if(store.getters['user/getUserData'].isNewUser){
                                 await store.dispatch('user/updateNewUser');

@@ -2,42 +2,46 @@
     <div class="files-wrapper">
         <Loading v-if="isLoading"/>
         <div class="files-list" v-else>
-            <div v-for="file in files" :key="file.id" class="file-card">
-                <router-link :to="{name: 'UpdateFile',params: {id: file.id}}" v-if="admin">
+            <div v-for="file in files" :key="file.id" class="file-card" @mouseenter="showTooltip(file)" @mouseleave="hideTooltip()">
+                <router-link :to="{name: 'UpdateFile',params: {id: file.id}}" v-if="isAdmin || isTeacher">
                     <span class="file-update"><i class="material-icons">edit</i></span>
                 </router-link>
+                <FileCard :file="file"/>
 
-                <a :href="file.link" target="_blank">
-                    <img class="file-img" :src="'../../../assets/png/file-'+file.from+'-'+file.type+'.png'">
-                    <p class="file-name">{{computedName(file.name)}}</p>
-                </a>
             </div>
 
         </div>
         <NoData :data="'files'" v-if="noData"/>
-
-        <div class="button-create" v-if="admin">
-            <button class="btn-create btn waves-effect waves-light red darken-4">
-                <router-link :to="{name: 'CreateFile', params: {folder:name}}"><i class="material-icons left">add</i>Create File</router-link>
-            </button>
-        </div> 
+        <div class="bottom">
+            <div :class="[{active : haveTooltip},'tooltip']">
+                <p>{{tooltip}}</p>
+            </div>
+            <div class="button-create" v-if="isAdmin">
+                <button class="btn-create btn waves-effect waves-light red darken-4">
+                    <router-link :to="{name: 'CreateFile', params: {folder:name}}"><i class="material-icons left">add</i>Create File</router-link>
+                </button>
+            </div> 
+        </div>
     </div>
 </template>
 
 <script>
+    import FileCard from '@/components/Resource/FileCard.vue'
     import {projectAuth} from '@/firebase/config'
     import getCollectionFilter from '@/composable/getCollectionFilter'
     import getDoc from '@/composable/getDoc'
-    import { computed, ref, watch, watchEffect } from 'vue';
+    import { computed, ref, watch, watchEffect, onMounted} from 'vue';
     import {useStore} from 'vuex'
     import { onBeforeRouteLeave } from 'vue-router'
     export default {
         props: ['name'],
-        components: {},
+        components: {FileCard},
         setup(props) {
+
             //////////check admin, nếu uid ko có trong firestore thì admin giữ nguyên null
             const store = useStore()
-            const admin = computed(()=> store.getters['user/getIsAdmin']);
+            const isAdmin = computed(()=>store.getters['user/getIsAdmin']);
+            const isTeacher = computed(()=> store.getters['user/getIsTeacher']);
 
 
             //chỉ lấy những resource có folder trùng với props.name truyền vào thôi
@@ -55,12 +59,25 @@
                 if(files.value.length == 0){
                     noData.value = true  //nếu ko có data thì hiện 
                 }
-                
-                
+                 
             })
 
-            const computedName = (name) => {
-                return name.toLowerCase() + '.'
+
+
+            //Show tooltip
+            const haveTooltip = ref(false);
+            const tooltip = ref(null)
+            const showTooltip = (file)=>{
+                if(!file.description){ // nếu rỗng
+                    tooltip.value = file.name
+                    haveTooltip.value = true;
+                }else{
+                    tooltip.value = file.description;
+                    haveTooltip.value = true;
+                }
+            }
+            const hideTooltip = ()=>{
+                haveTooltip.value = false;
             }
 
 //////////// PREVENT BACK TO RESOURCE
@@ -72,8 +89,8 @@
                 }
             })
 
-            return {files,error,admin,
-                    computedName, isLoading,noData}
+            return {files,error,showTooltip,tooltip,hideTooltip,haveTooltip,
+                     isLoading,noData,isAdmin,isTeacher}
         }
     }
 </script>
@@ -131,18 +148,8 @@
             color: $color-primary;
         }
     }
-    .file-img{
-        width: 9rem;
-    }
-    .file-name{
-        transform: translateX(-0.5rem);
-        text-align: center;
-        color: $color-primary;
-    }
+
     .button-create{
-        position:absolute;
-        bottom: 2.5rem;
-        right: 5rem;
         & button{
             border-radius: 10rem;
             text-transform: lowercase;
@@ -151,6 +158,27 @@
             & a{
                 color: white;
             }
+        }
+    }
+    .bottom{
+        position:absolute;
+        bottom: 2.5rem;
+        right: 5rem;
+        display: flex; 
+        justify-content: space-between;
+        width: 86%;
+    }
+    .tooltip{
+        @include transition;
+        opacity: 0;
+        display: flex;
+        align-items: center;
+        color: $color-gray-dark;
+        font-size: 1.2rem;
+        padding: 0 0.5rem;
+        max-width: 80%;
+        &.active{
+            opacity: 1;
         }
     }
 </style>

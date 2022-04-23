@@ -42,7 +42,7 @@
                     <div class="row" v-if="error"> 
                         <p class="error center" >{{error}}</p>
                     </div>
-                    <div class="row">
+                    <div class="row" v-if="isAdmin">
                         <div class="col s4">
                             <button class="waves-effect waves-light btn red red darken-4 btn-small" @click.prevent="deleteClass"><i class="material-icons left">delete</i>Delete</button>
                         </div>
@@ -50,6 +50,15 @@
                             <button class="waves-effect waves-light btn red grey lighten-1 btn-small" @click.prevent="closeUpdateModal"><i class="material-icons left">cancel</i>Cancel</button>
                         </div>
                         <div class="col s4">
+                            <button class="waves-effect waves-light btn btn-small"><i class="material-icons left">add</i>Update</button>
+                        </div>
+
+                    </div>
+                    <div class="row" v-if="isTeacher">
+                        <div class="col s6">
+                            <button class="waves-effect waves-light btn red grey lighten-1 btn-small" @click.prevent="closeUpdateModal"><i class="material-icons left">cancel</i>Cancel</button>
+                        </div>
+                        <div class="col s6">
                             <button class="waves-effect waves-light btn btn-small"><i class="material-icons left">add</i>Update</button>
                         </div>
 
@@ -62,17 +71,23 @@
 </template>
 
 <script>
-import { ref, watchEffect } from "vue"
+import { ref, watchEffect,computed } from "vue"
 import {timestamp,projectFunctions} from '@/firebase/config'
 import removeDoc from '@/composable/removeDoc'
 import removeDocsFilter from '@/composable/removeDocsFilter'
 import getDoc from '@/composable/getDoc'
 import getCollectionFilter from '@/composable/getCollectionFilter'
 import updateDoc from '@/composable/updateDoc'
+import {useStore} from 'vuex'
 export default {
     emits: ['closeModal'],
     props: ["showModal","classID"],
     setup(props,context) {
+
+        const store = useStore()
+        const isAdmin = computed(()=>store.getters['user/getIsAdmin']);
+        const isTeacher = computed(()=> store.getters['user/getIsTeacher']);
+
 
         const {data : activeClass, error : errGetClass, load: loadClass} = getDoc("classes")
         const {dataArray: filterStudents , error : errGetStudent, load : loadStudent} = getCollectionFilter();
@@ -129,6 +144,7 @@ export default {
         // delete cả student khỏi auth bằng admin luôn
         const deleteUser = projectFunctions.httpsCallable("deleteUser")
         const deleteClass = async()=>{
+            if(!isAdmin.value) return false;
             error.value = null
             const deletedClassID = props.classID;
             //load toàn bộ sinh viên về và thực hiện lần lượt xóa ở auth và firestore ko cần await nhau
@@ -181,7 +197,7 @@ export default {
 
         }
         return {date1, date2, time1, time2,courseID,
-                error,errUpdate,errRemoveClass,errRemoveStudent,
+                error,errUpdate,errRemoveClass,errRemoveStudent,isAdmin,isTeacher,
                 closeUpdateModal,handleSubmit,deleteClass};
     },
 };

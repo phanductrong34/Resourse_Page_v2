@@ -25,10 +25,10 @@ Khi click vào tab thì đổi biến activeCourse ở ngoài bố
                 :key="index">
             </div>
         </div>
-        <button class="btn waves-effect waves-light red darken-4" @click="toggleModal">
+        <button class="btn waves-effect waves-light red darken-4" @click="toggleModal" v-if="isAdmin">
             add Class
         </button>
-        <CreateClassModal :showModal="showModalCreate" @closeModal="toggleModal"/>
+        <CreateClassModal v-if="isAdmin" :showModal="showModalCreate" @closeModal="toggleModal"/>
     </div>
 
     
@@ -38,6 +38,7 @@ Khi click vào tab thì đổi biến activeCourse ở ngoài bố
     import CreateClassModal from "@/components/Classes/CreateClassModal"
     import getCollection from "@/composable/getCollection"
     import {ref,computed} from 'vue'
+    import {useStore} from 'vuex'
 
     export default {
         components: {
@@ -46,6 +47,10 @@ Khi click vào tab thì đổi biến activeCourse ở ngoài bố
         props: ['activeCourse'],
         setup() {
             //Model control
+            const store = useStore()
+            const isAdmin = computed(()=>store.getters['user/getIsAdmin']);
+            const isTeacher = computed(()=> store.getters['user/getIsTeacher']);
+
             const showModalCreate = ref(false);
             const toggleModal = ()=> {
                 showModalCreate.value = !showModalCreate.value;
@@ -65,7 +70,7 @@ Khi click vào tab thì đổi biến activeCourse ở ngoài bố
                     return [...newSet];
                 }
             })
-            return{courses , error,filterCourseType,
+            return{courses , error,filterCourseType,isAdmin,isTeacher,
                    showModalCreate,toggleModal}
         }
     }

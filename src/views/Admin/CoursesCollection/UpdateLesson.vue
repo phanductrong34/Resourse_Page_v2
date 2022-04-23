@@ -43,17 +43,21 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="input-field col s4">
+                    <div class="input-field col s3">
                         <input id="lesson-homework" type="text" class="validate" v-model="homeworkURL" required>
                         <label class="active"  for="lesson-homework">Homework URL</label>
                     </div>
-                    <div class="input-field col s4">
+                    <div class="input-field col s3">
                         <input id="lesson-playlist" type="text" class="validate" v-model="playlistURL" required>
                         <label class="active"  for="lesson-playlist">Youtube URL</label>
                     </div>
-                    <div class="input-field col s4">
+                    <div class="input-field col s3">
                         <input id="lesson-slide" type="text" class="validate" v-model="slideURL" required>
                         <label class="active"  for="lesson-slide">Slide URL</label>
+                    </div>
+                    <div class="input-field col s3">
+                        <input id="lesson-loop" type="text" class="validate" v-model="loopURL" required>
+                        <label class="active"  for="lesson-loop">Loop URL</label>
                     </div>
                 </div>                
                             
@@ -61,16 +65,10 @@
                 <div class="row" v-if="error">
                     <div class="error-message center">{{error}}</div>
                 </div>
-                <div class="row" v-if="errRemove">
-                    <div class="error-message center">{{errRemove}}</div>
-                </div>
-                <div class="row" v-if="errUpdate">
-                    <div class="error-message center">{{errUpdate}}</div>
-                </div>
                 <div class="row" v-if="errLesson">
                     <div class="error-message center">{{errLesson}}</div>
                 </div>
-                <div class="row">
+                <div class="row" v-if="isAdmin">
                     <div class="col s4">
                         <button class="button-course waves-effect waves-light btn grey lighten-1" @click.prevent="deleteLesson"><i class="material-icons left">delete</i>Delete Lesson</button>
                     </div>
@@ -78,6 +76,14 @@
                         <button class="button-course waves-effect waves-light btn grey lighten-1" @click.prevent="clearField"><i class="material-icons left">cancel</i>Clear</button>
                     </div>
                     <div class="col s4">
+                        <button class="button-course waves-effect waves-light btn red darken-4"><i class="material-icons left">add</i>Update Lesson</button>
+                    </div>
+                </div>
+                <div class="row" v-if="isTeacher">
+                    <div class="col s6">
+                        <button class="button-course waves-effect waves-light btn grey lighten-1" @click.prevent="clearField"><i class="material-icons left">cancel</i>Clear</button>
+                    </div>
+                    <div class="col s6">
                         <button class="button-course waves-effect waves-light btn red darken-4"><i class="material-icons left">add</i>Update Lesson</button>
                     </div>
                 </div>
@@ -89,29 +95,33 @@
 </template>
 
 <script>
-    import {ref,onMounted} from 'vue'
+    import {ref,onMounted,computed} from 'vue'
     import {useRouter} from 'vue-router'
     import {timestamp,projectFirestore} from '@/firebase/config'
     import getDoc from '@/composable/getDoc'
     import updateDoc from '@/composable/updateDoc'
     import removeDoc from '@/composable/removeDoc'
     import getPhoto from '@/composable/getPhoto'
+    import {useStore} from 'vuex'
     export default {
         props: ['id','courseID'],
         setup(props) {
             //SET UP FOR DROPDOWN INPUT
+            
             onMounted(() => {
                 $(document).ready(function(){
                     $('select').formSelect();
                     $('#textarea').characterCounter();
                 });
             })
+            const store = useStore()
+            const isAdmin = computed(()=>store.getters['user/getIsAdmin']);
+            const isTeacher = computed(()=> store.getters['user/getIsTeacher']);
 
             const router = useRouter();
             const {error :errPhoto,photoURL, loadPhotoURL} = getPhoto();
-            const {error: errUpdate, update} = updateDoc("lessons");
             const {data : lesson, error : errLesson, load: loadLesson} = getDoc("lessons");
-            const {error: errRemove, remove} = removeDoc("lessons");
+            
 
             //ref//
             const error = ref(null);
@@ -124,6 +134,7 @@
             const homeworkURL = ref("");
             const playlistURL = ref("");
             const slideURL = ref("");
+            const loopURL = ref("");
 
             //load data 
             loadLesson(props.id).then(()=>{
@@ -136,6 +147,7 @@
                 homeworkURL.value = lesson.value.homeworkURL
                 playlistURL.value = lesson.value.playlistURL
                 slideURL.value = lesson.value.slideURL
+                loopURL.value = lesson.value.loopURL
             })
 
             const closeModal = ()=>{
@@ -151,11 +163,15 @@
                 homeworkURL.value = "";
                 playlistURL.value = "";
                 slideURL.value = "";
+                loopURL.value = "";
             }
             const deleteLesson = async()=>{
-                await remove(props.id);
-                if(!errRemove.value){
-                    alert("Delete lesson succeed");
+                if(!isAdmin.value) return false;
+                const res = await store.dispatch("admin/deleteLesson",{
+                    lessonID : props.id,
+                    lessonNumber : number.value
+                });
+                if(res){
                     router.push({name: "Lessons", params: {id: props.courseID}})
                 }
             }
@@ -189,29 +205,26 @@
             };
 
             const handleSubmit = async()=>{
-                error.value = null;
+                const updatedLesson = {
+                    courseID: props.courseID,
+                    name: name.value,
+                    thumbnailRef : thumbnailRef.value,
+                    tags: tags.value,
+                    description : description.value,
+                    homeworkURL : homeworkURL.value,
+                    playlistURL : playlistURL.value,
+                    slideURL : slideURL.value,
+                    loopURL : loopURL.value,
+                    createdAt : timestamp(),
 
-                if(tags.value.length == 0){
-                    error.value = "You must have at least 1 tag"
-                }else{
-
-                    const updatedLesson = {
-                        courseID: props.courseID,
-                        name: name.value,
-                        thumbnailRef : thumbnailRef.value,
-                        tags: tags.value,
-                        description : description.value,
-                        homeworkURL : homeworkURL.value,
-                        playlistURL : playlistURL.value,
-                        slideURL : slideURL.value,
-                        createdAt : timestamp()
-                    }
-                    await update(props.id,updatedLesson);
-                    if(!errUpdate.value){
-                        alert(`Update lesson ${number.value} succeed!`);
-                        router.push({name: "Lessons", params: {id: props.courseID}})
-                    }
-
+                }
+                const res = await store.dispatch('admin/updateLesson',{
+                    lessonID: props.id,
+                    lessonNumber: number.value,
+                    updatedLesson: updatedLesson
+                })
+                if(res){
+                    router.push({name: "Lessons", params: {id: props.courseID}})
                 }
 
             }
@@ -219,9 +232,9 @@
 
 
 
-            return {error, number, name, thumbnailRef,tags,selectedTag, description, homeworkURL, playlistURL, slideURL,
+            return {error, number, name, thumbnailRef,tags,selectedTag, description, homeworkURL, playlistURL, slideURL,loopURL,
                     closeModal,clearField,handleSubmit,checkPhoto,addTag,deleteTag,resultImg, deleteLesson,
-                    errRemove, errUpdate, errLesson}
+                    errLesson,isAdmin,isTeacher}
         }
     }
 </script>
