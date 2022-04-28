@@ -27,6 +27,7 @@
                     <li><router-link :to="{name: 'Dashboard'}">Dashboard</router-link></li>
                     <li><router-link :to="{name: 'Laboratory'}">Laboratory</router-link></li>
                     <li><router-link :to="{name: 'Classroom'}">Classroom</router-link></li>
+                    <li><router-link :to="{name: 'Chatroom'}">Chat Room</router-link></li>
                     <li><router-link :to="{name: 'ResourceUser'}">Resource</router-link></li>
                 </ul>
                 

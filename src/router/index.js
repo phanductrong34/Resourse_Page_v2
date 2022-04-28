@@ -300,7 +300,14 @@ const routes = [
         name: 'Classroom',
         component: () => import('../views/User/Classroom.vue'),
         meta:{requiredAuth: true}
-      }
+      },
+      {
+        path:'chatroom',
+        name: 'Chatroom',
+        component: () => import('../views/User/ChatRoomUser.vue'),
+        meta:{requiredAuth: true}
+      },
+      
     ]
   }
 
