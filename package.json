@@ -16,6 +16,7 @@
     "lottie-web": "^5.7.6",
     "materialize-css": "^1.0.0-rc.2",
     "qs": "^6.10.1",
+    "socket.io": "^4.5.0",
     "timecode-boss": "^4.5.0",
     "tooltip-me": "^2.0.3",
     "vue": "^3.0.0-0",

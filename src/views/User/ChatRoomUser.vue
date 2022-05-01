@@ -1,13 +1,92 @@
 <template>
-  Hello Chat 
+  <div>
+    <ul ref="messages" id="messages"></ul>
+    <form id="form">
+      <input v-model="input" autocomplete="off" />
+      <button @click.prevent="submit">Send</button>
+    </form>
+  </div>
 </template>
 
 <script>
+import { io } from "socket.io/client-dist/socket.io";
+import { ref } from "vue";
 export default {
-
-}
+  setup() {
+    const input = ref("");
+    const messages = ref(null);
+    window.localStorage.setItem("test", "success");
+    console.log(messages);
+    let socket = io("ws://localhost:3000");
+    const submit = () => {
+      console.log(input.value);
+      if (input.value) {
+        socket.emit("chat message", input.value);
+        input.value = "";
+      }
+    };
+    socket.on("chat message", function(msg) {
+      var item = document.createElement("li");
+      console.log(msg);
+      item.textContent = msg;
+      messages.value.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+    
+    return { input, submit, messages };
+  },
+};
 </script>
 
-<style>
+<style scoped>
+body {
+  margin: 0;
+  padding-bottom: 3rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+}
 
+#form {
+  background: rgba(0, 0, 0, 0.15);
+  padding: 0.25rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  height: 3rem;
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+}
+#input {
+  border: none;
+  padding: 0 1rem;
+  flex-grow: 1;
+  border-radius: 2rem;
+  margin: 0.25rem;
+}
+#input:focus {
+  outline: none;
+}
+#form > button {
+  background: #333;
+  border: none;
+  padding: 0 1rem;
+  margin: 0.25rem;
+  border-radius: 3px;
+  outline: none;
+  color: #fff;
+}
+
+#messages {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+#messages > li {
+  padding: 0.5rem 1rem;
+}
+#messages > li:nth-child(odd) {
+  background: #efefef;
+}
 </style>
